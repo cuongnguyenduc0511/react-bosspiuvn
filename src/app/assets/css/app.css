@@ -1,0 +1,59 @@
+.stepball {
+    width: 60px;
+    height: 60px;
+}
+
+.table-responsive>.table>tbody>tr>td, .table-responsive>.table>tbody>tr>th, .table-responsive>.table>tfoot>tr>td, .table-responsive>.table>tfoot>tr>th, .table-responsive>.table>thead>tr>td, .table-responsive>.table>thead>tr>th {
+    vertical-align: middle;
+    float: none;
+}
+
+.badge.badge-purple {
+    background-color: purple;
+    color: white;
+}
+
+.badge.badge-orange {
+    background-color: orange;
+    color: white;
+}
+
+.table .badge {
+    font-size: 17px;
+    padding: 10px;
+}
+
+.pagination {
+    flex-wrap: wrap;
+}
+
+.b-search-form-container {
+    background-color: #dbdbdb;
+    padding: 20px;
+    margin-bottom: 30px;
+    -webkit-box-shadow: 7px 7px 25px -5px rgba(0,0,0,0.75);
+    -moz-box-shadow: 7px 7px 25px -5px rgba(0,0,0,0.75);
+    box-shadow: 7px 7px 25px -5px rgba(0,0,0,0.75);
+}
+
+.table-checkbox {
+    margin:-5px 0 1px -10px; /* <-- here */
+    padding: 0;
+    vertical-align: middle;
+}
+
+.main-logo {
+    width: 120px;
+}
+
+.b-login-form {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: 0 auto;
+}
+
+.form-feedback-text {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
