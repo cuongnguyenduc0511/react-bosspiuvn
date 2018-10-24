@@ -16,12 +16,14 @@ import {
     DropdownMenu,
     DropdownItem
 } from 'reactstrap';
+import { signOut } from '../actions/Auth/authActions';
 
 class NavigationBar extends React.Component {
     constructor(props) {
         super(props);
 
         this.toggle = this.toggle.bind(this);
+        this.signOut = this.signOut.bind(this);
         this.state = {
             isOpen: false
         };
@@ -31,6 +33,10 @@ class NavigationBar extends React.Component {
         this.setState({
             isOpen: !this.state.isOpen
         });
+    }
+
+    signOut() {
+        this.props.signOut();
     }
 
     render() {
@@ -61,7 +67,7 @@ class NavigationBar extends React.Component {
                                         Option 2
                                 </DropdownItem>
                                     <DropdownItem divider />
-                                    <DropdownItem>
+                                    <DropdownItem onClick={this.signOut}>
                                         Sign Out
                                 </DropdownItem>
                                 </DropdownMenu>
@@ -81,8 +87,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = (dispatch) => {
     return {
         signOut: () => {
-            // dispatch(signOut())
-            console.log('Sign out');
+            dispatch(signOut())
         }
     }
 }

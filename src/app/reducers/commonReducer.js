@@ -27,7 +27,9 @@ export default function (state = INITIAL_STATE, action) {
             return {
                 ...state,
                 isLoading: true
-            }        
+            }  
+        case commonActions.RESET_STATE:
+            return INITIAL_STATE;
         default:
             return state;
     }

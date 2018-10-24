@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { push } from 'react-router-redux';
 import { authActions } from './authActionTypes';
+import { requestActions } from '../Request/requestActionTypes';
+import { commonActions } from '../Common/commonActionTypes';
 const authApiUrl = 'http://localhost:3000/admin/user/login';
 const authInstance = axios.create();
 
@@ -48,4 +50,22 @@ export const getUserInformation = () => dispatch => {
         console.log('NOT OK');
     })
 }
+
+export const signOut = () => dispatch => {
+    console.log('Logout');
+    if (localStorage.getItem('authToken')) {
+        localStorage.removeItem('authToken');
+    }
+    dispatch({
+        type: requestActions.RESET_STATE
+    })
+    dispatch({
+        type: commonActions.RESET_STATE
+    })
+    dispatch({
+        type: authActions.SIGN_OUT,
+    });
+    dispatch(push('/login'));
+}
+
 

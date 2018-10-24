@@ -6,8 +6,15 @@ import {
     Modal, ModalHeader, ModalBody, ModalFooter
 } from 'reactstrap'
 import { connect } from 'react-redux';
-import { fetchCommonData, cancelAllRequests } from '../../actions/Common/commonActions';
+import { fetchCommonData, cancelAllCommonRequests } from '../../actions/Common/commonActions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { fetchRequests, requestSource } from '../../actions/Request/requestActions';
+import { ListPagination } from '../../component/ListPagination';
+
+const requestListStyle = {
+    position: 'relative',
+    height: '100%'
+}
 
 class Request extends Component {
     constructor(props) {
@@ -23,10 +30,14 @@ class Request extends Component {
     componentDidMount() {
         console.log('request mounted');
         this.props.fetchCommonData();
+        this.props.fetchRequests();
     }
 
     componentWillUnmount() {
-        cancelAllRequests();
+        cancelAllCommonRequests();
+        if (requestSource) {
+            requestSource.cancel();
+        }
     }
 
     onHandleChange = (e) => {
@@ -45,62 +56,164 @@ class Request extends Component {
         console.log(this.state.formValue);
     }
 
+    onPageChanged = (pageNumber) => {
+        console.log(pageNumber);
+    }
+
+    onMasterCheckboxChanged = (event) => {
+        // console.log('Master Checkbox Changed: ' + event.target.checked);
+        const isMasterCheckboxChecked = event.target.checked;
+        let itemCheckboxes = document.getElementsByClassName('item-checkbox');
+        for (let i = 0; i < itemCheckboxes.length; i++) {
+            itemCheckboxes[i].checked = isMasterCheckboxChecked ? true : false;
+        }
+    }
+
+    onItemCheckboxChanged = (event) => {
+        const checkedCheckboxValues = this.getCheckedCheckboxValues();
+        const totalItems = document.getElementsByClassName('item-checkbox').length;
+        const masterCheckboxElement = document.getElementById('master-checkbox');
+        console.log(`Item checkbox ${event.target.value} check changed: ${event.target.checked}`);
+        if (checkedCheckboxValues.length > 0) {
+            masterCheckboxElement.checked = (checkedCheckboxValues.length === totalItems) ? true : false
+        } else {
+            masterCheckboxElement.checked = false;
+        }
+        console.log(document.getElementById('app-loader'));
+    }
+
+    getCheckedCheckboxValues() {
+        const checkedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+        let checkedCheckboxesValue = [];
+        for (var i = 0; checkedCheckboxes[i]; ++i) {
+            checkedCheckboxesValue.push(checkedCheckboxes[i].value);
+        }
+        return checkedCheckboxesValue;
+    }
+
+
     renderSearchForm() {
         const self = this;
         const { stepchartTypeItems, statusItems, stepchartLevelItems, isCommonLoading } = this.props;
         return (
-        <Container className="b-search-form-container" fluid>
-            <div hidden={!isCommonLoading} className="overlay-div">
-                <FontAwesomeIcon className="spin-big overlay-loader" icon="spinner" spin />
-            </div>
-            <Form onSubmit={this.onHandlingSearch}>
-                <Row form>
-                    <Col lg={3} md={6}>
-                        <FormGroup>
-                            <Label for="search_admin">Search</Label>
-                            <Input type="text" name="search_admin" id="search_admin" onChange={self.onHandleChange} placeholder="Search" />
-                        </FormGroup>
-                    </Col>
-                    <Col lg={3} md={6}>
-                        <FormGroup>
-                            <Label for="stepchart_type">Stepchart Types</Label>
-                            <Input type="select" name="stepchart_type" id="stepchart_type">
-                                {
-                                    stepchartTypeItems ? stepchartTypeItems.map((item, index) => {
-                                        return <option key={index} value={item.value}>{item.title}</option>
-                                    }) : null
-                                }
-                            </Input>
-                        </FormGroup>
-                    </Col>
-                    <Col lg={3} md={6}>
-                        <FormGroup>
-                            <Label for="stepchart_level">Stepchart Levels</Label>
-                            <Input type="select" name="stepchart_level" id="stepchart_level" onChange={self.onHandleChange}>
-                                {
-                                    stepchartLevelItems ? stepchartLevelItems.map(item => {
-                                        return <option key={item.value} value={item.value}>{item.title}</option>
-                                    }) : null
-                                }
-                            </Input>
-                        </FormGroup>
-                    </Col>
-                    <Col lg={3} md={6}>
-                        <FormGroup>
-                            <Label for="status">Status</Label>
-                            <Input type="select" name="status" id="status" onChange={self.onHandleChange}>
-                                {
-                                    statusItems ? statusItems.map(item => {
-                                        return <option key={item.value} value={item.value}>{item.title}</option>
-                                    }) : null
-                                }
-                            </Input>
-                        </FormGroup>
-                    </Col>
-                </Row>
-                <Button color="primary" type='submit'>Search</Button>
-            </Form>
-        </Container>)
+            <Container className="b-search-form-container" fluid>
+                <div hidden={!isCommonLoading} className="overlay-div">
+                    <FontAwesomeIcon className="spin-big overlay-loader" icon="spinner" spin />
+                </div>
+                <Form onSubmit={this.onHandlingSearch}>
+                    <Row form>
+                        <Col lg={3} md={6}>
+                            <FormGroup>
+                                <Label for="search_admin">Search</Label>
+                                <Input type="text" name="search_admin" id="search_admin" onChange={self.onHandleChange} placeholder="Search" />
+                            </FormGroup>
+                        </Col>
+                        <Col lg={3} md={6}>
+                            <FormGroup>
+                                <Label for="stepchart_type">Stepchart Types</Label>
+                                <Input type="select" name="stepchart_type" id="stepchart_type">
+                                    {
+                                        stepchartTypeItems ? stepchartTypeItems.map((item, index) => {
+                                            return <option key={index} value={item.value}>{item.title}</option>
+                                        }) : null
+                                    }
+                                </Input>
+                            </FormGroup>
+                        </Col>
+                        <Col lg={3} md={6}>
+                            <FormGroup>
+                                <Label for="stepchart_level">Stepchart Levels</Label>
+                                <Input type="select" name="stepchart_level" id="stepchart_level" onChange={self.onHandleChange}>
+                                    {
+                                        stepchartLevelItems ? stepchartLevelItems.map(item => {
+                                            return <option key={item.value} value={item.value}>{item.title}</option>
+                                        }) : null
+                                    }
+                                </Input>
+                            </FormGroup>
+                        </Col>
+                        <Col lg={3} md={6}>
+                            <FormGroup>
+                                <Label for="status">Status</Label>
+                                <Input type="select" name="status" id="status" onChange={self.onHandleChange}>
+                                    {
+                                        statusItems ? statusItems.map(item => {
+                                            return <option key={item.value} value={item.value}>{item.title}</option>
+                                        }) : null
+                                    }
+                                </Input>
+                            </FormGroup>
+                        </Col>
+                    </Row>
+                    <Button color="primary" type='submit'>Search</Button>
+                </Form>
+            </Container>)
+    }
+
+    renderTableList() {
+        const self = this;
+        const { isRequestLoading, requestResult } = self.props;
+        console.log(requestResult);
+        const requestItems = requestResult ? requestResult.items : null;
+
+        function importAll(r) {
+            // return r.keys().map(r);
+            let images = {};
+            r.keys().map((item, index) => { images[item.replace('./', '')] = r(item); });
+            return images;
+        }
+
+        var stepLevelImages = importAll(require.context('../../assets/images/stepball_levels', false, /\.(png|jpe?g|svg)$/));
+
+        return (
+            <Container fluid style={requestListStyle}>
+                <div hidden={!isRequestLoading} className="overlay-div">
+                    <FontAwesomeIcon className="spin-big overlay-loader" icon="spinner" spin />
+                </div>
+
+                <Table hidden={!isRequestLoading && (requestResult && requestResult.items.length === 0)} id='request-list' responsive>
+                    <thead>
+                        <tr>
+                            <th><Input id={"master-checkbox"} className={'table-checkbox'} type='checkbox' onChange={self.onMasterCheckboxChanged} /></th>
+                            <th>Song Name</th>
+                            <th>Level</th>
+                            <th>Requester</th>
+                            <th>STEPMAKER</th>
+                            <th>Request Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {
+                            requestItems ? requestItems.map(function (requestItem, index) {
+                                const stepchartInfo = requestItem.stepchart_info;
+                                const requestStatus = requestItem.status;
+                                const badgeColor = requestStatus.client_label_class.split('-')[1].toString();
+                                const imgName = `${stepchartInfo.stepchart_type_value}-${stepchartInfo.stepchart_level}.png`;
+                                return <tr key={requestItem._id}>
+                                    <td><Input className={'table-checkbox item-checkbox'} value={requestItem._id} type='checkbox' onClick={self.onItemCheckboxChanged} /></td>
+                                    <td>{requestItem.song_name}</td>
+                                    <td><img className="stepball" src={stepLevelImages[imgName]} /></td>
+                                    <td>{requestItem.requester}</td>
+                                    <td>{requestItem.stepmaker}</td>
+                                    <td>{new Date(requestItem.request_date).toLocaleString()}</td>
+                                    <td>
+                                        <h4><Badge color={badgeColor}>{requestStatus.display_text}</Badge></h4>
+                                    </td>
+                                    <td>
+                                        <Button color="primary">Edit</Button>
+                                        &nbsp;
+                                <Button color="danger" onClick={self.toggleDeleteModal}>Delete</Button>
+                                    </td>
+                                </tr>
+                            }) : null
+                        }
+                    </tbody>
+                </Table>
+                {(requestResult && requestResult.items.length > 0) ? <ListPagination onPageChanged={this.onPageChanged} result={requestResult} /> : null}
+            </Container>
+        )
     }
 
     render() {
@@ -109,7 +222,8 @@ class Request extends Component {
         return (
             <Container fluid>
                 <h1 className='text-center section-header'>Request Page</h1>
-                { self.renderSearchForm() }
+                {self.renderSearchForm()}
+                {self.renderTableList()}
             </Container>
         );
     }
@@ -119,13 +233,18 @@ const mapStateToProps = state => ({
     stepchartLevelItems: state.common.stepchartLevelItems,
     stepchartTypeItems: state.common.stepchartTypeItems,
     statusItems: state.common.statusItems,
-    isCommonLoading: state.common.isLoading
+    isCommonLoading: state.common.isLoading,
+    requestResult: state.request.requestResult,
+    isRequestLoading: state.request.isLoading
 })
 
 const mapDispatchToProps = (dispatch) => {
     return {
         fetchCommonData: () => {
             dispatch(fetchCommonData());
+        },
+        fetchRequests: (page, params) => {
+            dispatch(fetchRequests(page, params));
         }
     }
 }

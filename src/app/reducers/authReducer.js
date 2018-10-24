@@ -30,6 +30,8 @@ export default function (state = INITIAL_STATE, action) {
                 isAuthenticated: true,
                 user: action.payload
             };
+        case authActions.SIGN_OUT:
+            return INITIAL_STATE
         default:
             return state;
     }

@@ -71,7 +71,7 @@ function getStatusItems(cancelTokenSource) {
     });
 }
 
-export function cancelAllRequests() {
+export function cancelAllCommonRequests() {
     if (commonInstanceSources.length > 0) {
         commonInstanceSources.forEach(item => {
             item.cancel();
