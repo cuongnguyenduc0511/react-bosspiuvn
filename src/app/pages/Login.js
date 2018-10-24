@@ -4,11 +4,14 @@ import {
     Form, FormGroup, FormText, FormFeedback,
     Input, Label, Row, Col, Alert
 } from 'reactstrap';
+import { Redirect } from 'react-router-dom'
 import { connect } from 'react-redux';
 import mainLogo from '../assets/images/BOSS_PIUVN.png';
 import '../assets/css/login.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { authenticate } from '../actions/Auth/authActions';
+import { push } from 'react-router-redux';
+import store from '../configureStore';
 
 class Login extends Component {
     constructor(props) {
@@ -18,6 +21,7 @@ class Login extends Component {
 
     componentDidMount() {
         console.log('login mounted');
+
     }
 
     onHandleSubmit = (event) => {
@@ -40,6 +44,11 @@ class Login extends Component {
     render() {
         document.getElementsByTagName('body')[0].className = 'body-login text-center';
         const { isLoading, error } = this.props;
+
+        if (localStorage.getItem('authToken')) {
+            return <Redirect to="/song" />
+        }
+
         return (
             <Form className="b-login-form" onSubmit={this.onHandleSubmit}>
                 <img className="img-fluid mb-4" width={200} src={mainLogo} />
@@ -64,7 +73,7 @@ class Login extends Component {
                     Authentication Failed: {error}
                 </Alert>
                 <Button disabled={isLoading} type='submit' color="primary" size="lg" block>
-                    { isLoading ? <FontAwesomeIcon icon="spinner" spin /> : null}
+                    {isLoading ? <FontAwesomeIcon icon="spinner" spin /> : null}
                     &nbsp;Sign In
                 </Button>
                 <p className="mt-5 mb-3 text-muted">© 2017-2018</p>

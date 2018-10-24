@@ -1,12 +1,16 @@
 import React, { Component } from 'react';
 import { Router, Switch } from 'react-router-dom'
 import routes from './routes';
+import { connect } from 'react-redux'
 import { renderRoutes } from 'react-router-config';
 import { history } from '../../configureStore';
+import NavigationBar from '../../component/Navigation';
+import { getUserInformation } from '../../actions/Auth/authActions';
 
-export class App extends Component {
+class App extends Component {
     constructor(props) {
         super(props);
+        this.props.getUserInformation();
     }
 
     componentDidMount() {
@@ -14,15 +18,32 @@ export class App extends Component {
     }
 
     render() {
-        document.getElementsByTagName('body')[0].className = ''
+        document.getElementsByTagName('body')[0].className = 'app-body'
         return (
-            <Router history={history}>
-                <div>
-                    <Switch>
-                        {renderRoutes(routes)}
-                    </Switch>
-                </div>
-            </Router>
+            <div>
+                <NavigationBar />
+                <Router history={history}>
+                    <div>
+                        <Switch>
+                            {renderRoutes(routes)}
+                        </Switch>
+                    </div>
+                </Router>
+            </div>
         );
     }
 }
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        getUserInformation: () => {
+            dispatch(getUserInformation());
+        },
+        getCommonData: () => {
+            // dispatch(getCommonData());
+            console.log('Get Common Data');
+        }
+    }
+}
+
+export default connect(null, mapDispatchToProps)(App)

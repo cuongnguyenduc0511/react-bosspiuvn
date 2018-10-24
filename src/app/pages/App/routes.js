@@ -9,15 +9,21 @@ const Song = Loadable({
     }
 });
 
+const Request = Loadable({
+    loader: () => import('../Request'),
+    loading() {
+        return <AppLoader />
+    }
+});
+
 const routes = [
     {
-        path: '/',
-        exact: true,
+        path: '/song',
         component: Song
     },
     {
-        path: '/song',
-        component: Song,
+        path: '/request',
+        component: Request
     }
 ]
 

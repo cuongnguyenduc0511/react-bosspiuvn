@@ -1,12 +1,13 @@
-import React, { Component } from 'react-dom';
-import { Router, Route, NavLink as RRNavLink } from 'react-router-dom';
+import React from 'react';
+import { NavLink as RRNavLink } from 'react-router-dom';
+import mainLogo from '../assets/images/BOSS_PIUVN.png';
 import { connect } from 'react-redux';
-import mainLogo from '../assets/images/BOSS_PIUVN.png'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-    Navbar,
-    NavbarBrand,
-    NavbarToggler,
     Collapse,
+    Navbar,
+    NavbarToggler,
+    NavbarBrand,
     Nav,
     NavItem,
     NavLink,
@@ -14,15 +15,13 @@ import {
     DropdownToggle,
     DropdownMenu,
     DropdownItem
-} from 'reactstrap'
+} from 'reactstrap';
 
-class Navigation extends Component {
-
+class NavigationBar extends React.Component {
     constructor(props) {
         super(props);
 
         this.toggle = this.toggle.bind(this);
-
         this.state = {
             isOpen: false
         };
@@ -35,32 +34,36 @@ class Navigation extends Component {
     }
 
     render() {
-        const self = this;
+        const { userInfo } = this.props;
+        console.log(userInfo);
         return (
             <div>
-                <Navbar color="light" light expand="md">
+                <Navbar fixed="top" color="light" light expand="md">
                     <NavbarBrand href="javascript:void(0)"><img className='img-fluid main-logo' src={mainLogo} /></NavbarBrand>
                     <NavbarToggler onClick={this.toggle} />
                     <Collapse isOpen={this.state.isOpen} navbar>
                         <Nav className="ml-auto" navbar>
                             <NavItem>
-                                <NavLink to="/song" activeClassName="active" tag={RRNavLink}>Song</NavLink>
+                                <NavLink to="/song" activeClassName="active" tag={RRNavLink}><FontAwesomeIcon className='nav-item-logo' icon="music" /> Song</NavLink>
+                            </NavItem>
+                            <NavItem>
+                                <NavLink to="/request" activeClassName="active" tag={RRNavLink}><FontAwesomeIcon className='nav-item-logo' icon="address-book" /> Request</NavLink>
                             </NavItem>
                             <UncontrolledDropdown nav inNavbar>
                                 <DropdownToggle nav caret>
-                                    Options
-                </DropdownToggle>
+                                <img className='img-fluid avatar' src={userInfo ? userInfo.avatarImg : null} /> Hi, {userInfo ? userInfo.displayName : null}
+                                </DropdownToggle>
                                 <DropdownMenu right>
                                     <DropdownItem>
                                         Option 1
-                  </DropdownItem>
+                                </DropdownItem>
                                     <DropdownItem>
                                         Option 2
-                  </DropdownItem>
+                                </DropdownItem>
                                     <DropdownItem divider />
                                     <DropdownItem>
                                         Sign Out
-                  </DropdownItem>
+                                </DropdownItem>
                                 </DropdownMenu>
                             </UncontrolledDropdown>
                         </Nav>
@@ -71,4 +74,17 @@ class Navigation extends Component {
     }
 }
 
-export default Navigation
+const mapStateToProps = state => ({
+    userInfo: state.auth.user,
+})
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        signOut: () => {
+            // dispatch(signOut())
+            console.log('Sign out');
+        }
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(NavigationBar)

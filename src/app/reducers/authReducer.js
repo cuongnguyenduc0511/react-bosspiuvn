@@ -1,7 +1,6 @@
 import { authActions } from '../actions/Auth/authActionTypes'
 
 const INITIAL_STATE = {
-    isAuthenticated: false
 };
 
 export default function (state = INITIAL_STATE, action) {
@@ -21,7 +20,16 @@ export default function (state = INITIAL_STATE, action) {
             };
         case authActions.LOGIN_SUCCESS:
             localStorage.setItem('authToken', action.payload);
-            return state;
+            return {
+                ...state,
+                isAuthenticated: true,
+            };
+        case authActions.GET_CURRENT_USER:
+            return {
+                ...state,
+                isAuthenticated: true,
+                user: action.payload
+            };
         default:
             return state;
     }

@@ -6,58 +6,42 @@ import { connect } from 'react-redux';
 import Loadable from 'react-loadable';
 import { AppLoader } from './component/Loader/AppLoader'
 import { history } from './configureStore';
-import { App } from './pages/App/App';
-
-function PrivateRoute({ component: Component, authed, ...rest }) {
-    return (
-        <Route
-            {...rest}
-            render={(props) => authed === true
-                ? <Component {...props} />
-                : <Redirect to={{ pathname: '/login', state: { from: props.location } }} />}
-        />
-    )
-}
-
-function PreventRoute({ component: Component, authed, ...rest }) {
-    return (
-        <Route
-            {...rest}
-            render={(props) => authed === true
-                ? <Redirect to={{ pathname: '/song', state: { from: props.location } }} />
-                : <Component {...props} />
-            }
-        />
-    )
-}
-
+import App from './pages/App/App';
+import { checkAuthentication } from './actions/Auth/authActions';
 
 const Login = Loadable({
     loader: () => import('./pages/Login'),
     loading() {
         return <AppLoader />
-    }
+    },
 });
 
 class AppRoot extends Component {
     constructor(props) {
         super(props);
-    }
-
-    componentDidMount() {
-        console.log('root component mounted');
+        console.log('app root init');
     }
 
     render() {
         const { store } = this.props;
-        const isAuthenticated = localStorage.getItem('authToken') ? true : false;
-        console.log(isAuthenticated);
+
+        const PrivateRoute = ({ component: Component, ...rest }) => (
+            <Route {...rest} render={(props) => (
+                localStorage.getItem('authToken')
+                    ? <Component {...props} />
+                    : <Redirect to={{
+                        pathname: '/login',
+                        state: { from: props.location }
+                    }} />
+            )} />
+        )
+
         return (
             <Provider store={store}>
                 <Router history={history}>
                     <Switch>
-                        <PreventRoute authed={isAuthenticated} path='/login' component={Login} />
-                        <PrivateRoute authed={isAuthenticated} path='/' component={App} />
+                        <Route path='/login' component={Login} />
+                        <PrivateRoute path='/' component={App} />
                     </Switch>
                 </Router>
             </Provider>
