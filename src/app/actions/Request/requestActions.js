@@ -3,12 +3,19 @@ import { push } from 'react-router-redux';
 import { requestActions } from './requestActionTypes';
 const requestApiUrl = 'http://localhost:3000/admin/requests';
 import { authHeader } from '../../helpers/auth-header';
+import { getAllUrlParams } from '../../modules/params';
+import { getCancelToken, removeCancelToken } from '../../helpers/axios-cancellation';
 const requestInstance = axios.create();
-const CancelToken = axios.CancelToken;
-export var requestSource;
 
-export const fetchRequests = ({page = null, params = null} = {}) => dispatch => {
+export const fetchRequests = (page = null, params = null) => dispatch => {
     fetchRequestData(params, page, dispatch);
+}
+
+export const saveSearchValue = (formValue) => dispatch => {
+    dispatch({
+        type: requestActions.SAVE_SEARCH_VALUE,
+        payload: formValue
+    })
 }
 
 let fetchRequestData = function (params, page, dispatch) {
@@ -18,13 +25,14 @@ let fetchRequestData = function (params, page, dispatch) {
         type: requestActions.FETCH_REQUESTS_PENDING
     });
 
-    requestSource = CancelToken.source();
+    let requestSource = getCancelToken();
 
     requestInstance.get(requestApiUrl, {
         params: urlParams,
         headers: authHeader(),
         cancelToken: requestSource.token
     }).then(res => {
+        removeCancelToken(requestSource);
         dispatch({
             type: requestActions.FETCH_REQUESTS_SUCCESS,
             payload: res.data
@@ -34,9 +42,7 @@ let fetchRequestData = function (params, page, dispatch) {
             type: requestActions.FETCH_REQUESTS_FAIL,
             payload: error
         });
-    }).then(() => {
-        requestSource = null;
-    })
+    });
 }
 
 function getParams(params = null, page = null) {

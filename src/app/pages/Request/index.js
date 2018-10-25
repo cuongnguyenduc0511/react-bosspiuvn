@@ -6,10 +6,11 @@ import {
     Modal, ModalHeader, ModalBody, ModalFooter
 } from 'reactstrap'
 import { connect } from 'react-redux';
-import { fetchCommonData, cancelAllCommonRequests } from '../../actions/Common/commonActions';
+import { fetchCommonData, fetchStepchartLevels, fetchStepchartTypes } from '../../actions/Common/commonActions';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { fetchRequests, requestSource } from '../../actions/Request/requestActions';
+import { fetchRequests, requestSource, saveSearchValue } from '../../actions/Request/requestActions';
 import { ListPagination } from '../../component/ListPagination';
+import { cancelAllPendingRequests } from '../../helpers/axios-cancellation';
 
 const requestListStyle = {
     position: 'relative',
@@ -29,15 +30,22 @@ class Request extends Component {
 
     componentDidMount() {
         console.log('request mounted');
-        this.props.fetchCommonData();
-        this.props.fetchRequests();
+
+        const { stepchartTypeItems, statusItems, requestResult, fetchRequests, fetchCommonData, fetchStepchartLevels } = this.props;
+        
+        if (!stepchartTypeItems || !statusItems) {
+            fetchCommonData();
+        } 
+
+        if(!requestResult) {
+            fetchRequests();
+        }
+
+        fetchStepchartLevels();
     }
 
     componentWillUnmount() {
-        cancelAllCommonRequests();
-        if (requestSource) {
-            requestSource.cancel();
-        }
+        cancelAllPendingRequests();
     }
 
     onHandleChange = (e) => {
@@ -52,12 +60,36 @@ class Request extends Component {
         })
     }
 
-    onSearch = () => {
-        console.log(this.state.formValue);
+    onSearch = (e) => {
+        e.preventDefault();
+        const formValue = this.state.formValue;
+        this.props.saveSearchValue(formValue);
+        this.props.fetchRequests({params: formValue});
     }
 
     onPageChanged = (pageNumber) => {
-        console.log(pageNumber);
+        const queryParams = this.props.requestResult.queryParams;
+        const params = {
+            page: pageNumber,
+            params: queryParams
+        }
+        this.props.fetchRequests(params);
+    }
+
+    onStepchartTypeChanged = (e) => {
+        const stepLevelElement = document.getElementById('stepchart_level');
+
+        this.props.fetchStepchartLevels(e.target.value);
+
+        this.onHandleChange(e);
+        
+        setTimeout(function () {
+            //reflect value changes
+            var evt = document.createEvent('HTMLEvents');
+            stepLevelElement.value = stepLevelElement.value;
+            evt.initEvent('change', true, true);
+            stepLevelElement.dispatchEvent(evt);
+        });
     }
 
     onMasterCheckboxChanged = (event) => {
@@ -94,13 +126,14 @@ class Request extends Component {
 
     renderSearchForm() {
         const self = this;
-        const { stepchartTypeItems, statusItems, stepchartLevelItems, isCommonLoading } = this.props;
+        const { stepchartTypeItems, statusItems, stepchartLevelItems, isCommonLoading, isRequestLoading } = this.props;
         return (
             <Container className="b-search-form-container" fluid>
-                <div hidden={!isCommonLoading} className="overlay-div">
+                <div hidden={!isCommonLoading && !isRequestLoading} className="overlay-div">
                     <FontAwesomeIcon className="spin-big overlay-loader" icon="spinner" spin />
                 </div>
-                <Form onSubmit={this.onHandlingSearch}>
+                
+                <Form onSubmit={this.onSearch}>
                     <Row form>
                         <Col lg={3} md={6}>
                             <FormGroup>
@@ -111,7 +144,7 @@ class Request extends Component {
                         <Col lg={3} md={6}>
                             <FormGroup>
                                 <Label for="stepchart_type">Stepchart Types</Label>
-                                <Input type="select" name="stepchart_type" id="stepchart_type">
+                                <Input type="select" name="stepchart_type" id="stepchart_type" onChange={self.onStepchartTypeChanged}>
                                     {
                                         stepchartTypeItems ? stepchartTypeItems.map((item, index) => {
                                             return <option key={index} value={item.value}>{item.title}</option>
@@ -243,9 +276,15 @@ const mapDispatchToProps = (dispatch) => {
         fetchCommonData: () => {
             dispatch(fetchCommonData());
         },
-        fetchRequests: (page, params) => {
+        fetchRequests: ({ params = null, page = null } = {}) => {
             dispatch(fetchRequests(page, params));
-        }
+        },
+        fetchStepchartLevels: (stepchartType = '') => {
+            dispatch(fetchStepchartLevels(stepchartType));
+        },
+        saveSearchValue: (formValue) => {
+            dispatch(saveSearchValue(formValue));
+        },
     }
 }
 

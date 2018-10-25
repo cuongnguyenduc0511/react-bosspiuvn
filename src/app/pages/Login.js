@@ -21,7 +21,6 @@ class Login extends Component {
 
     componentDidMount() {
         console.log('login mounted');
-
     }
 
     onHandleSubmit = (event) => {
@@ -40,6 +39,8 @@ class Login extends Component {
         })
     }
 
+    validateForm() {
+    }
 
     render() {
         document.getElementsByTagName('body')[0].className = 'body-login text-center';
