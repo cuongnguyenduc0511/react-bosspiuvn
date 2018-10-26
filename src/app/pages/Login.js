@@ -16,12 +16,14 @@ import { isFormValid } from '../helpers/form-validator';
 var formConstraints = {
     username: {
         presence: {
-            message: 'Username is required'
+            message: 'Username is required',
+            allowEmpty: false
         }
     },
     password: {
         presence: {
-            message: 'Password is required'
+            message: 'Password is required',
+            allowEmpty: false
         },
         length: {
             minimum: 6,
@@ -68,6 +70,12 @@ class Login extends Component {
         this.setState({
             formValue: newState
         })
+
+        if(this.state.isFormSubmit) {
+            setTimeout(function() {
+                isFormValid(self.state.formValue, formConstraints, self);
+            }, 1);    
+        }
     }
 
     render() {
