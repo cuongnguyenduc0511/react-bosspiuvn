@@ -16,16 +16,34 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.jsx?$/,
-                // exclude: /node_modules/,
-                loader: 'babel-loader',
-                query: {
-                    presets: ['es2015', 'react', 'stage-2']
-                }
+                test: /\.(js|jsx)$/,
+                exclude: /(node_modules|bower_components)/,
+                // loader: 'babel-loader',
+                // query: {
+                //     presets: ['es2015', 'react', 'stage-2']
+                // }
+                use: [
+					{
+						loader: 'babel-loader',
+						options: {
+							babelrc: true
+						}
+					}
+				]
             },
             {
                 test: /\.css$/,
                 use: ['style-loader', 'css-loader']
+            },
+            {
+                test: /\.scss$/,
+                use: [{
+                    loader: "style-loader"
+                }, {
+                    loader: "css-loader"
+                }, {
+                    loader: "sass-loader",
+                }]
             },
             {
                 test: /\.(png|jpg|gif)$/,

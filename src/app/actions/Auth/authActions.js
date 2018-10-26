@@ -48,6 +48,10 @@ export const getUserInformation = () => dispatch => {
         })
     }).catch(function (error) {
         console.log('NOT OK');
+        if (error.response.status === 401) {
+            console.log('Damn!!');
+            dispatch(signOut());
+        }
     })
 }
 

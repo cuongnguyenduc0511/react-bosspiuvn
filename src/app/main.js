@@ -7,6 +7,7 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { faSpinner, faMusic, faAddressBook } from '@fortawesome/free-solid-svg-icons'
 import AppRoot from './AppRoot';
 import store from './configureStore';
+import 'babel-polyfill';
 
 library.add([
     faSpinner, faMusic, faAddressBook

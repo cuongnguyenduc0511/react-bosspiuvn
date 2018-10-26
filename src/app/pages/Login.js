@@ -11,12 +11,34 @@ import '../assets/css/login.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { authenticate } from '../actions/Auth/authActions';
 import { push } from 'react-router-redux';
-import store from '../configureStore';
+import { isFormValid } from '../helpers/form-validator';
+
+var formConstraints = {
+    username: {
+        presence: {
+            message: 'Username is required'
+        }
+    },
+    password: {
+        presence: {
+            message: 'Password is required'
+        },
+        length: {
+            minimum: 6,
+            message: "Password must be at least 6 characters",
+        }
+    }
+};
 
 class Login extends Component {
     constructor(props) {
         super(props);
-        this.state = {}
+        this.state = {
+            formValue: {
+                username: null,
+                password: null
+            },
+        }
     }
 
     componentDidMount() {
@@ -25,11 +47,20 @@ class Login extends Component {
 
     onHandleSubmit = (event) => {
         event.preventDefault();
+        const self = this;
         const formValue = this.state.formValue;
-        this.props.authenticate(formValue);
+        // this.props.authenticate(formValue);
+        this.setState({
+            isFormSubmit: true
+        })
+
+        if (isFormValid(formValue, formConstraints, this)) {
+            // this.props.authenticate(formValue);
+        }
     }
 
     onHandleChange = (e) => {
+        const self = this;
         let newState = Object.assign({}, this.state.formValue, {
             [e.target.name]: e.target.value
         });
@@ -39,13 +70,10 @@ class Login extends Component {
         })
     }
 
-    validateForm() {
-    }
-
     render() {
         document.getElementsByTagName('body')[0].className = 'body-login text-center';
         const { isLoading, error } = this.props;
-
+        const { formErrors } = this.state;
         if (localStorage.getItem('authToken')) {
             return <Redirect to="/song" />
         }
@@ -58,15 +86,15 @@ class Login extends Component {
                     <Col lg={12}>
                         <FormGroup>
                             <Label for="username" className={"float-left"}>Username</Label>
-                            <Input disabled={isLoading} type="text" name="username" id="username" placeholder="Enter your username" onChange={this.onHandleChange} />
-                            <FormFeedback className={"form-feedback-text"}>Oh noes! that name is already taken</FormFeedback>
+                            <Input invalid={formErrors && formErrors.username ? true : false} disabled={isLoading} type="text" name="username" id="username" placeholder="Enter your username" onChange={this.onHandleChange} />
+                            <FormFeedback className={"form-feedback-text"}>{ formErrors && formErrors.username ? formErrors.username[0] : null }</FormFeedback>
                         </FormGroup>
                     </Col>
                     <Col lg={12}>
                         <FormGroup>
-                            <Label for="username" className={"float-left"}>Password</Label>
-                            <Input disabled={isLoading} type="password" name="password" id="password" placeholder="Enter your password" onChange={this.onHandleChange} />
-                            <FormFeedback className={"form-feedback-text"}>Oh noes! that name is already taken</FormFeedback>
+                            <Label for="password" className={"float-left"}>Password</Label>
+                            <Input invalid={formErrors && formErrors.password ? true : false} disabled={isLoading} type="password" name="password" id="password" placeholder="Enter your password" onChange={this.onHandleChange} />
+                            <FormFeedback className={"form-feedback-text"}>{ formErrors && formErrors.password ? formErrors.password[0] : null }</FormFeedback>
                         </FormGroup>
                     </Col>
                 </Row>

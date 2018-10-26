@@ -42,7 +42,24 @@ class Request extends Component {
         }
 
         fetchStepchartLevels();
+
+        if (this.props.formValue) {
+            const formValue = this.props.formValue;
+            this.patchFormValue(formValue);
+        }
+
     }
+
+    patchFormValue = (formValue) => {
+        this.setState({
+            formValue: formValue
+        });
+
+        for (let k in formValue) {
+            document.getElementById(k).value = formValue[k];
+        }
+    }
+
 
     componentWillUnmount() {
         cancelAllPendingRequests();
@@ -65,6 +82,11 @@ class Request extends Component {
         const formValue = this.state.formValue;
         this.props.saveSearchValue(formValue);
         this.props.fetchRequests({params: formValue});
+
+        if (this.props.formValue) {
+            const formValue = this.props.formValue;
+            this.patchFormValue(formValue);
+        }
     }
 
     onPageChanged = (pageNumber) => {
@@ -268,6 +290,7 @@ const mapStateToProps = state => ({
     statusItems: state.common.statusItems,
     isCommonLoading: state.common.isLoading,
     requestResult: state.request.requestResult,
+    formValue: state.request.formValue,
     isRequestLoading: state.request.isLoading
 })
 

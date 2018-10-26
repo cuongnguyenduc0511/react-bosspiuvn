@@ -23,4 +23,12 @@ describe('Song Page', () => {
         const wrapper = shallow(<Song />);
         expect(wrapper.find('p').text()).toEqual("This is song page content");
       });
+
+      it('when click button, h3 value should have content: Yolo', () => {
+        const wrapper = shallow(<Song />);
+
+        wrapper.find('button#myButton').simulate('click');
+
+        expect(wrapper.find('h3#value').text()).toEqual("Yolo");
+      });
 });

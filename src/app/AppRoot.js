@@ -19,7 +19,18 @@ const Login = Loadable({
 class AppRoot extends Component {
     constructor(props) {
         super(props);
-        console.log('app root init');
+
+        // async function f() {
+        //     let promise = new Promise((resolve, reject) => {
+        //         setTimeout(() => resolve("Got Damn It!"), 5000)
+        //     });
+
+        //     let result = await promise; // wait till the promise resolves (*)
+
+        //     alert(result); // "done!"
+        // }
+
+        // f();
     }
 
     render() {
