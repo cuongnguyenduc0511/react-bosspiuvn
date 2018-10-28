@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Router, Switch } from 'react-router-dom'
-import routes from './routes';
+import { Router, Switch, Route } from 'react-router-dom'
+import routes, { RouteWithSubRoutes } from './routes';
 import { connect } from 'react-redux'
 import { renderRoutes } from 'react-router-config';
 import { history } from '../../configureStore';
@@ -18,7 +18,8 @@ class App extends Component {
     }
 
     render() {
-        document.getElementsByTagName('body')[0].className = 'app-body'
+        document.getElementsByTagName('body')[0].className = 'app-body';
+    
         return (
             <div>
                 <NavigationBar />

@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import store from '../configureStore';
+import { push } from 'react-router-redux';
 
 export default class Song extends Component {
     constructor(props) {
@@ -12,6 +14,7 @@ export default class Song extends Component {
         this.setState({
             value: 'Yolo'
         })
+        // store.dispatch(push('/request/list'));
     }
 
     render() {

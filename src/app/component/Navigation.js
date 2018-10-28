@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink as RRNavLink } from 'react-router-dom';
-import mainLogo from '../assets/images/BOSS_PIUVN.png';
+// import mainLogo from '../assets/images/BOSS_PIUVN.png';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -45,7 +45,7 @@ class NavigationBar extends React.Component {
         return (
             <div>
                 <Navbar fixed="top" color="light" light expand="md">
-                    <NavbarBrand href="javascript:void(0)"><img className='img-fluid main-logo' src={mainLogo} /></NavbarBrand>
+                    <NavbarBrand href="javascript:void(0)"><img className='img-fluid main-logo' src={`http://localhost:3000/images/BOSS_PIUVN.png`} /></NavbarBrand>
                     <NavbarToggler onClick={this.toggle} />
                     <Collapse isOpen={this.state.isOpen} navbar>
                         <Nav className="ml-auto" navbar>

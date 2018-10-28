@@ -1,16 +1,18 @@
 import validate from 'validate.js';
 
 export function isFormValid(formValue, formConstraints, context) {
-    console.log(formValue);
     let formValidation = validate(formValue, formConstraints, {fullMessages: false});
 
-    if(formValidation) {
-        console.log(formValidation);
-        context.setState({
-            formErrors: formValidation
-        });        
-        return false
+    for(let k in formValidation) {
+        formValidation[k] = formValidation[k] ? {
+            errorMessage: formValidation[k][0]
+        } : null
     }
 
-    return true;
+    context.setState({
+        formErrors: formValidation
+    });        
+
+    return formValidation ? false : true; 
+
 }

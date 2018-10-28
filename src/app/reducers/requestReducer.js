@@ -28,6 +28,22 @@ export default function (state = INITIAL_STATE, action) {
                 ...state,
                 formValue: action.payload
             }
+        case requestActions.DELETE_REQUEST_PENDING: 
+            return {
+                ...state,
+                deleteState: {
+                    isDeletePending: true,
+                    result: null
+                }
+            }
+        case requestActions.DELETE_REQUEST_DONE:
+            return {
+                ...state,
+                deleteState: {
+                    isDeletePending: false,
+                    result: action.payload
+                }
+            }
         case requestActions.RESET_STATE:
             return INITIAL_STATE;
         default:

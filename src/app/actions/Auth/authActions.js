@@ -1,10 +1,14 @@
+import React from 'react';
 import axios from 'axios';
 import { push } from 'react-router-redux';
 import { authActions } from './authActionTypes';
 import { requestActions } from '../Request/requestActionTypes';
 import { commonActions } from '../Common/commonActionTypes';
+import { Redirect } from 'react-router-dom'
 const authApiUrl = 'http://localhost:3000/admin/user/login';
 const authInstance = axios.create();
+import swal from 'sweetalert';
+import { history } from '../../configureStore';
 
 export const authenticate = (formValue) => dispatch => {
 
@@ -41,35 +45,40 @@ export const getUserInformation = () => dispatch => {
             'Authorization': `Bearer ${userToken}`
         }
     }).then(function (res) {
-        console.log('OK');
         dispatch({
             type: authActions.GET_CURRENT_USER,
             payload: res.data
         })
     }).catch(function (error) {
-        console.log('NOT OK');
         if (error.response.status === 401) {
-            console.log('Damn!!');
             dispatch(signOut());
         }
     })
 }
 
 export const signOut = () => dispatch => {
-    console.log('Logout');
+    console.log('Sign Out');
+
     if (localStorage.getItem('authToken')) {
         localStorage.removeItem('authToken');
     }
-    dispatch({
-        type: requestActions.RESET_STATE
-    })
-    dispatch({
-        type: commonActions.RESET_STATE
-    })
-    dispatch({
-        type: authActions.SIGN_OUT,
-    });
+
+    dispatch(resetAllState());
+
     dispatch(push('/login'));
 }
 
-
+export const resetAllState = () => dispatch => {
+    
+    const resetStateActions = [{
+        type: requestActions.RESET_STATE
+    }, {
+        type: commonActions.RESET_STATE
+    }, {
+        type: authActions.RESET_STATE,
+    }]
+    
+    resetStateActions.forEach(action => {
+        dispatch(action);
+    });
+}
