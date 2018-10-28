@@ -15,18 +15,47 @@ const options = [
 ];
 
 class RequestEdit extends Component {
-	constructor(props) {
-		super(props);
-		this.state = {
-			selectedOption: null,
-		}
+	state = {
 	}
 
 	componentDidMount() {
 		console.log('Request Edit Mounted');
 	}
 
+	onHandleChange = (e) => {
+        const self = this;
+        let newState = Object.assign({}, self.state.formValue, {
+            [e.target.name]: e.target.value
+        });
+
+        self.setState({
+            formValue: newState
+        })
+
+        if(self.state.isFormSubmit) {
+            setTimeout(function() {
+                isFormValid(self.state.formValue, formConstraints, self);
+                console.log(self.state);
+            }, 1);    
+        }
+	}
+	
+	onSelectChange(e, inputName) {
+		const self = this;
+		console.log(inputName);
+		let newState = Object.assign({}, self.state.formValue, {
+            [inputName] : e.value
+		});
+		
+		self.setState({
+			formValue: newState
+		});		
+	}
+
 	render() {
+		const isFieldError = true;
+		const self = this;
+		const { formValue } = self.state;
 		return (
 			<Container fluid>
 				<h1 className='text-center section-header'>Request Edit Page</h1>
@@ -37,16 +66,17 @@ class RequestEdit extends Component {
 								<Col md={12}>
 									<FormGroup>
 										<Label for="song_name">Song Name</Label>
-										<Select classNamePrefix={'react-select'} className={'react-select-container'}
-											value={this.state.selectedOption}
+										<Select onChange={(e) => self.onSelectChange(e, 'song_name')} classNamePrefix={isFieldError ? 'form-control-invalid' : 'form-control'} className={'form-control-container'}
 											options={options}
 										/>
+										<div hidden={!isFieldError} className="form-feedback-text select-feedback">Username is required</div>
 									</FormGroup>
 								</Col>
 								<Col md={12}>
 									<FormGroup>
 										<Label for="requestDate">Requester Name</Label>
-										<Input type="text" name="song_name" id="song_name" onChange={self.onHandleChange} placeholder="Search" />
+										<Input invalid type="text" name="requester_name" id="requester_name" onChange={self.onHandleChange} placeholder="Enter Requester Name" />
+										<FormFeedback className={"form-feedback-text"}>Requester name is required</FormFeedback>
 									</FormGroup>
 								</Col>
 								<Col md={12}>
@@ -58,7 +88,7 @@ class RequestEdit extends Component {
 								<Col md={12}>
 									<FormGroup>
 										<Label for="requestDate">Content Name</Label>
-										<Input type="text" name="song_name" id="song_name" onChange={self.onHandleChange} placeholder="Search" />
+										<Input type="text" name="content_name" id="content_name" onChange={self.onHandleChange} placeholder="Search" />
 									</FormGroup>
 								</Col>
 							</Row>

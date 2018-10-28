@@ -107,3 +107,31 @@
 .app-body { 
     padding-top: 80px;
  }
+
+ .form-control-invalid__control {
+     border-color:red !important;
+ }
+
+ .form-control-invalid__control.form-control-invalid__control--is-focused {
+    box-shadow: 0 0 0 1px red !important;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    transition-property: border-color, box-shadow;
+    transition-duration: 0.15s, 0.15s;
+    transition-timing-function: ease-in-out, ease-in-out;
+    transition-delay: 0s, 0s
+}
+
+.form-control__control.form-control__control--is-focused {
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    transition-property: border-color, box-shadow;
+    transition-duration: 0.15s, 0.15s;
+    transition-timing-function: ease-in-out, ease-in-out;
+    transition-delay: 0s, 0s
+}
+
+.select-feedback {
+    width: 100%;
+    margin-top: .50rem;
+    font-size: 80%;
+    color: #dc3545;
+}
