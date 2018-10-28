@@ -28,7 +28,7 @@ export default function (state = INITIAL_STATE, action) {
                 ...state,
                 formValue: action.payload
             }
-        case requestActions.DELETE_REQUEST_PENDING: 
+        case requestActions.DELETE_REQUEST_PENDING:
             return {
                 ...state,
                 deleteState: {
@@ -44,6 +44,27 @@ export default function (state = INITIAL_STATE, action) {
                     result: action.payload
                 }
             }
+        case requestActions.EDIT_FETCH_REQUEST_PENDING:
+            delete state.editRequestError;
+            return {
+                ...state,
+                isRequestItemFetching: true,
+            }
+        case requestActions.EDIT_FETCH_REQUEST_FAIL:
+            return {
+                ...state,
+                isRequestItemFetching: false,
+                editRequestError: action.payload ? action.payload : undefined
+            }
+        case requestActions.EDIT_FETCH_REQUEST_DONE:
+            return {
+                ...state,
+                isRequestItemFetching: false,
+                editedRequest: action.payload
+            }
+        case requestActions.EDIT_CLEAR_REQUEST_ITEM:
+            delete state.editedRequest;
+            return state;
         case requestActions.RESET_STATE:
             return INITIAL_STATE;
         default:

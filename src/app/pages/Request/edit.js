@@ -15,17 +15,30 @@ import { fetchCommonData, fetchStepchartLevels } from '../../actions/Common/comm
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { cancelAllPendingRequests } from '../../helpers/axios-cancellation';
 import { isFormValid } from '../../helpers/form-validator';
+import { fetchRequestItem, clearRequestItem } from '../../actions/Request/requestActions';
 
 const formConstraints = {
-	song_name: {
+	song: {
 		presence: {
 			message: 'Song is required',
 			allowEmpty: false
 		},
 	},
-	requester_name: {
+	requester: {
 		presence: {
 			message: 'Requester name is required',
+			allowEmpty: false
+		},
+	},
+	stepchart_type: {
+		presence: {
+			message: 'Stepchart type is required',
+			allowEmpty: false
+		},
+	},
+	stepchart_level: {
+		presence: {
+			message: 'Stepchart level is required',
 			allowEmpty: false
 		},
 	}
@@ -69,44 +82,102 @@ const formatOptionLabel = data => (
 )
 
 class RequestEdit extends Component {
-	state = {
-		formValue: {
-			song_name: null,
-			requester_name: null
-		},
-		formErrors: {
-			song_name: null
+	constructor(props) {
+		super(props);
+		this.state = {
+			formValue: {
+				song: null,
+				requester: null
+			},
+			formErrors: {
+				song: null
+			}
 		}
 	}
 
 	componentDidMount() {
 		console.log('Request Edit Mounted');
 		const self = this;
-		const { stepchartTypeItems, statusItems, fetchCommonData, fetchStepchartLevels, songItems } = this.props;
+
+		const {
+			stepchartTypeItems, stepchartLevelItems, statusItems, songItems,
+			fetchCommonData, fetchStepchartLevels, editedRequest, fetchRequestItem
+		} = self.props;
 
 		if (!stepchartTypeItems || !statusItems || !songItems) {
 			fetchCommonData();
 		}
 
-		CKEDITOR.replace('requester_note', {
-			on: {
-				change: function (evt) {
-					let data = evt.editor.getData();
-					self.onTextAreaChanged('requester_note', data);
-				},
-				instanceReady: function (evt) {
+		if (!stepchartLevelItems) {
+			fetchStepchartLevels();
+		}
+
+		if (!editedRequest) {
+			const id = this.props.match.params.id;
+			fetchRequestItem(id);
+		}
+
+		setTimeout(function () {
+			self.manipulateRequestData(self.props.editedRequest)
+
+			CKEDITOR.replace('requester_note', {
+				on: {
+					change: function (evt) {
+						let data = evt.editor.getData();
+						self.onTextAreaChanged('requester_note', data);
+					},
+					instanceReady: function (evt) {
+						console.log('requester_note instance ready');
+						self.setState({
+							isRequesterNoteReady: true
+						})
+					}
 				}
-			}
+			});
+
+			CKEDITOR.replace('custom_note', {
+				on: {
+					change: function (evt) {
+						let data = evt.editor.getData();
+						self.onTextAreaChanged('custom_note', data);
+					},
+					instanceReady: function (evt) {
+						console.log('custom_note instance ready');
+						self.setState({
+							isCustomNoteReady: true
+						})
+					}
+				}
+			});	
+
+		}, 2000);
+	}
+
+	manipulateRequestData(item) {
+		const self = this;
+		const { ucs_link, stepchart_info, song, song_name, status, requester_note, custom_note, content_name, stepmaker, requester } = item;
+		
+		self.setState({
+			formValue: {
+				ucs_link: ucs_link,
+				status: status.value,
+				stepchart_type: stepchart_info.stepchart_type_value,
+				stepchart_level: stepchart_info.stepchart_level,
+				requester: requester,
+				stepmaker: stepmaker,
+				requester_note: requester_note ? requester_note : '',
+				custom_note: custom_note ? custom_note : '',
+				content_name: content_name ? content_name : '',
+				song: song
+			},
+			selectedSong: item ? { label: song_name, value: song } : null
 		});
 
-		CKEDITOR.replace('custom_note', {
-			on: {
-				change: function (evt) {
-					let data = evt.editor.getData();
-					self.onTextAreaChanged('custom_note', data);
-				},
-				instanceReady: function (evt) {
-				}
+		const { formValue } = self.state;
+		const bindInput = ['requester_note', 'custom_note', 'requester', 'stepchart_type', 'stepchart_level'];
+		bindInput.forEach(item => {
+			if (formValue[item]) {
+				document.getElementById(item).value = formValue[item];
 			}
 		});
 
@@ -114,6 +185,10 @@ class RequestEdit extends Component {
 
 	componentWillUnmount() {
 		cancelAllPendingRequests();
+		this.props.clearRequestItem();
+		for (name in CKEDITOR.instances) {
+			CKEDITOR.instances[name].destroy();
+		}
 	}
 
 	onHandleChange = (e) => {
@@ -150,21 +225,38 @@ class RequestEdit extends Component {
 
 	onSelectChange(e, inputName) {
 		const self = this;
-		console.log(inputName);
 		let newState = Object.assign({}, self.state.formValue, {
 			[inputName]: e.value ? e.value : null
 		});
 
 		self.setState({
-			formValue: newState
+			formValue: newState,
+			selectedSong: e
 		});
+
+		console.log(self.state);
 
 		if (self.state.isFormSubmit) {
 			setTimeout(function () {
 				isFormValid(self.state.formValue, formConstraints, self);
-				console.log(self.state);
 			}, 1);
 		}
+	}
+
+	onStepchartTypeChanged = (e) => {
+		const stepLevelElement = document.getElementById('stepchart_level');
+
+		this.props.fetchStepchartLevels(e.target.value);
+
+		this.onHandleChange(e);
+
+		setTimeout(function () {
+			//reflect value changes
+			var evt = document.createEvent('HTMLEvents');
+			stepLevelElement.value = stepLevelElement.value;
+			evt.initEvent('change', true, true);
+			stepLevelElement.dispatchEvent(evt);
+		});
 	}
 
 	onSubmit = (e) => {
@@ -182,35 +274,37 @@ class RequestEdit extends Component {
 	}
 
 	render() {
-		const isFieldError = false;
 		const self = this;
-		const { formErrors, formValue } = self.state;
-		const { songItems , stepchartTypeItems } = self.props;
+		const { formErrors, selectedSong, isCustomNoteReady, isRequesterNoteReady } = self.state;
+		const { songItems, stepchartTypeItems, stepchartLevelItems, isRequestItemFetching, isCommonLoading } = self.props;
+
 		return (
 			<Container fluid>
 				<h1 className='text-center section-header'>Request Edit Page</h1>
+				<div hidden={!isCommonLoading && !isRequestItemFetching && isCustomNoteReady && isRequesterNoteReady} className="overlay-div">
+					<FontAwesomeIcon className="spin-big overlay-loader" icon="spinner" spin />
+				</div>
 				<Form onSubmit={self.onSubmit}>
 					<Row>
 						<Col lg={5} md={12}>
 							<Row form>
 								<Col md={12}>
 									<FormGroup>
-										<Label for="song_name">Song Name</Label>
+										<Label for="song">Song Name</Label>
 										{/* <Select onChange={(e) => self.onSelectChange(e, 'song_name')} classNamePrefix={isFieldError ? 'form-control-invalid' : 'form-control'} className={'form-control-container'}
 											options={options}
 										/> */}
-										<Select onChange={(e) => self.onSelectChange(e, 'song_name')} classNamePrefix={formErrors && formErrors.song_name ? 'form-control-invalid' : 'form-control'} className={'form-control-container'}
+										<Select value={selectedSong} onChange={(e) => self.onSelectChange(e, 'song')} classNamePrefix={formErrors && formErrors.song ? 'form-control-invalid' : 'form-control'} className={'form-control-container'}
 											options={songItems} formatGroupLabel={formatGroupLabel} formatOptionLabel={formatOptionLabel}
 										/>
-
-										<div hidden={formErrors && !formErrors.song_name ? true : false} className="form-feedback-text select-feedback">{formErrors && formErrors.song_name ? formErrors.song_name.errorMessage : null}</div>
+										<div hidden={formErrors && !formErrors.song ? true : false} className="form-feedback-text select-feedback">{formErrors && formErrors.song ? formErrors.song.errorMessage : null}</div>
 									</FormGroup>
 								</Col>
 								<Col md={12}>
 									<FormGroup>
-										<Label for="requestDate">Requester Name</Label>
-										<Input invalid={formErrors && formErrors.requester_name ? true : false} type="text" name="requester_name" id="requester_name" onChange={self.onHandleChange} placeholder="Enter Requester Name" />
-										<FormFeedback className={"form-feedback-text"}>{formErrors && formErrors.requester_name ? formErrors.requester_name.errorMessage : null}</FormFeedback>
+										<Label for="requester">Requester Name</Label>
+										<Input invalid={formErrors && formErrors.requester ? true : false} type="text" name="requester" id="requester" onChange={self.onHandleChange} placeholder="Enter Requester Name" />
+										<FormFeedback className={"form-feedback-text"}>{formErrors && formErrors.requester ? formErrors.requester.errorMessage : null}</FormFeedback>
 									</FormGroup>
 								</Col>
 								<Col md={12}>
@@ -221,32 +315,34 @@ class RequestEdit extends Component {
 								</Col>
 								<Col md={12}>
 									<FormGroup>
-										<Label for="requestDate">Content Name</Label>
+										<Label for="content_name">Content Name</Label>
 										<Input type="text" name="content_name" id="content_name" onChange={self.onHandleChange} placeholder="Search" />
 									</FormGroup>
 								</Col>
 								<Col lg={6} md={6}>
 									<FormGroup>
 										<Label for="stepchart_type">Stepchart Types</Label>
-										<Input type="select" name="stepchart_type" id="stepchart_type" onChange={self.onStepchartTypeChanged}>
+										<Input invalid={formErrors && formErrors.stepchart_type ? true : false} type="select" name="stepchart_type" id="stepchart_type" onChange={self.onStepchartTypeChanged}>
 											{
 												stepchartTypeItems ? stepchartTypeItems.map((item, index) => {
 													return <option key={index} value={item.value}>{item.title}</option>
 												}) : null
 											}
 										</Input>
+										<FormFeedback className={"form-feedback-text"}>{formErrors && formErrors.stepchart_type ? formErrors.stepchart_type.errorMessage : null}</FormFeedback>
 									</FormGroup>
 								</Col>
 								<Col lg={6} md={6}>
 									<FormGroup>
 										<Label for="stepchart_level">Stepchart Levels</Label>
-										<Input type="select" name="stepchart_level" id="stepchart_level" onChange={self.onHandleChange}>
-											{/* {
+										<Input invalid={formErrors && formErrors.stepchart_level ? true : false} type="select" name="stepchart_level" id="stepchart_level" onChange={self.onHandleChange}>
+											{
 												stepchartLevelItems ? stepchartLevelItems.map(item => {
 													return <option key={item.value} value={item.value}>{item.title}</option>
 												}) : null
-											} */}
+											}
 										</Input>
+										<FormFeedback className={"form-feedback-text"}>{formErrors && formErrors.stepchart_level ? formErrors.stepchart_level.errorMessage : null}</FormFeedback>
 									</FormGroup>
 								</Col>
 							</Row>
@@ -256,14 +352,14 @@ class RequestEdit extends Component {
 								<Col md={12}>
 									<FormGroup>
 										<Label for="requester_note">Requester Note</Label>
-										<textarea name="requester_note" id="requester_note" rows="10" cols="80" defaultValue={'This is my textarea to be replaced with CKEditor.'}>
+										<textarea name="requester_note" id="requester_note" rows="10" cols="80">
 										</textarea>
 									</FormGroup>
 								</Col>
 								<Col md={12}>
 									<FormGroup>
 										<Label for="custom_note">Custom Note</Label>
-										<textarea name="custom_note" id="custom_note" rows="10" cols="80" defaultValue={'This is custom note'}>
+										<textarea name="custom_note" id="custom_note" rows="10" cols="80">
 										</textarea>
 									</FormGroup>
 								</Col>
@@ -283,7 +379,8 @@ const mapStateToProps = state => ({
 	songItems: state.common.songItems,
 	statusItems: state.common.statusItems,
 	isCommonLoading: state.common.isLoading,
-	requestResult: state.request.requestResult,
+	isRequestItemFetching: state.request.isRequestItemFetching,
+	editedRequest: state.request.editedRequest
 })
 
 const mapDispatchToProps = (dispatch) => {
@@ -293,6 +390,12 @@ const mapDispatchToProps = (dispatch) => {
 		},
 		fetchStepchartLevels: (stepchartType = '') => {
 			dispatch(fetchStepchartLevels(stepchartType));
+		},
+		fetchRequestItem: (id) => {
+			dispatch(fetchRequestItem(id));
+		},
+		clearRequestItem: () => {
+			dispatch(clearRequestItem());
 		}
 	}
 }

@@ -85,6 +85,43 @@ export const saveSearchValue = (formValue) => dispatch => {
     })
 }
 
+export const fetchRequestItem = (id) => dispatch => {
+    let requestSource = getCancelToken();
+    const requestApiUrl = `http://localhost:3000/admin/request/${id}`;
+    
+    dispatch({
+        type: requestActions.EDIT_FETCH_REQUEST_PENDING
+    });
+    
+    requestInstance.get(requestApiUrl, {
+        headers: authHeader(),
+        cancelToken: requestSource.token
+    }).then(res => {
+        removeCancelToken(requestSource);
+        dispatch({
+            type: requestActions.EDIT_FETCH_REQUEST_DONE,
+            payload: res.data
+        });
+    }).catch(error => {
+        if (error.response && error.response.status === 401) {
+            dispatch(signOut());
+        } else {
+            if (!axios.isCancel()) {
+                dispatch({
+                    type: requestActions.EDIT_FETCH_REQUEST_FAIL,
+                    payload: error
+                });
+            }
+        }
+    });
+}
+
+export const clearRequestItem = () => dispatch => {
+    dispatch({
+        type: requestActions.EDIT_CLEAR_REQUEST_ITEM
+    })
+}
+
 let fetchRequestData = function (params, page, dispatch) {
     let urlParams = getParams(params, page);
 
