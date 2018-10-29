@@ -13,14 +13,13 @@ import { fetchRequests, requestSource, saveSearchValue, deleteRequest } from '..
 import { ListPagination } from '../../component/ListPagination';
 import { cancelAllPendingRequests } from '../../helpers/axios-cancellation';
 import store from '../../configureStore';
-import { renderRoutes } from 'react-router-config';
 
 const requestListStyle = {
     position: 'relative',
     height: '100%'
 }
 
-class Request extends Component {
+class RequestList extends Component {
     constructor(props) {
         super(props);
 
@@ -117,10 +116,6 @@ class Request extends Component {
         const formValue = this.state.formValue;
         this.props.saveSearchValue(formValue);
         this.props.fetchRequests({ params: formValue });
-
-        if (this.props.formValue) {
-            this.saveSearchValue(formValue);
-        }
     }
 
     onPageChanged = (pageNumber) => {
@@ -134,7 +129,7 @@ class Request extends Component {
 
     onSwitchToEditPage = (itemId) => {
         console.log(itemId);
-        store.dispatch(push('/request/edit'));
+        store.dispatch(push(`/request/edit/${itemId}`));
     }
 
     onStepchartTypeChanged = (e) => {
@@ -360,7 +355,6 @@ class Request extends Component {
         console.log(route.routes);
         return (
             <Container fluid>
-                <h1 className='text-center section-header'>Request Page</h1>
                 {self.renderSearchForm()}
                 {self.renderResult()}
                 {self.renderTableList()}
@@ -402,4 +396,4 @@ const mapDispatchToProps = (dispatch) => {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Request)
+export default connect(mapStateToProps, mapDispatchToProps)(RequestList)

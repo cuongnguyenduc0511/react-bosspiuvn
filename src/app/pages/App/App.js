@@ -19,17 +19,13 @@ class App extends Component {
 
     render() {
         document.getElementsByTagName('body')[0].className = 'app-body';
-    
+
         return (
             <div>
                 <NavigationBar />
-                <Router history={history}>
-                    <div>
-                        <Switch>
-                            {renderRoutes(routes)}
-                        </Switch>
-                    </div>
-                </Router>
+                <Switch>
+                    {renderRoutes(routes)}
+                </Switch>
             </div>
         );
     }

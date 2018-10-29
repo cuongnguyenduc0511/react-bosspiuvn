@@ -11,6 +11,7 @@
         "transform-class-properties",
         "transform-decorators-legacy",
         "syntax-dynamic-import",
-        "transform-runtime"
+        "transform-runtime",
+        "babel-polyfill"
     ]
 }

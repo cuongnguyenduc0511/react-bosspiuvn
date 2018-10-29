@@ -7,11 +7,13 @@ module.exports = {
     entry: SRC_DIR + '/app/main.js',
     output: {
         path: SRC_DIR + '/public',
-        filename: 'bundle.js'
+        filename: 'bundle.js',
+        publicPath: '/'
     },
     devServer: {
         inline: true,
-        port: 8080
+        port: 8080,
+        historyApiFallback: true
     },
     module: {
         rules: [
@@ -23,13 +25,13 @@ module.exports = {
                 //     presets: ['es2015', 'react', 'stage-2']
                 // }
                 use: [
-					{
-						loader: 'babel-loader',
-						options: {
-							babelrc: true
-						}
-					}
-				]
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            babelrc: true
+                        }
+                    }
+                ]
             },
             {
                 test: /\.css$/,

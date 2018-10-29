@@ -10,11 +10,26 @@ const Song = Loadable({
 });
 
 const Request = Loadable({
-    loader: () => import('../Request'),
+    loader: () => import('../Request/main'),
     loading() {
         return <AppLoader />
     }
 });
+
+const RequestList = Loadable({
+    loader: () => import('../Request/list'),
+    loading() {
+        return <AppLoader />
+    }
+});
+
+const RequestEdit = Loadable({
+    loader: () => import('../Request/edit'),
+    loading() {
+        return <AppLoader />
+    }
+});
+
 
 const routes = [
     {
@@ -23,7 +38,17 @@ const routes = [
     },
     {
         path: '/request',
-        component: Request
+        component: Request,
+        routes: [{
+            path: '/request/edit/:id',
+            exact: true,
+            component: RequestEdit
+        },
+        {
+            path: '/request',
+            exact: true,
+            component: RequestList
+        }]
     }
 ]
 

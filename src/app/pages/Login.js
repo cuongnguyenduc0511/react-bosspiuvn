@@ -91,7 +91,7 @@ class Login extends Component {
         const { isLoading, error } = this.props;
         const { formErrors } = this.state;
         if (localStorage.getItem('authToken')) {
-            return <Redirect to="/song" />
+            return <Redirect to="/request" />
         }
 
         return (
