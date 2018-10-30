@@ -10,7 +10,7 @@ export default function (state = INITIAL_STATE, action) {
     switch (action.type) {
         case commonActions.GET_COMMON_DATA:
             console.log('Dispatched');
-            const { stepchartTypeItems, statusItems } = action.payload;
+            const { stepchartTypeItems, statusItems, songItems } = action.payload;
 
             let stepchartTypeItemsSelect = [{ value: '', title: 'Choose Stepchart Types' }, ...stepchartTypeItems];
 
@@ -23,13 +23,18 @@ export default function (state = INITIAL_STATE, action) {
                 ...state,
                 isLoading: false,
                 stepchartTypeItems: stepchartTypeItemsSelect,
-                statusItems: statusItemsSelect
+                statusItems: statusItemsSelect,
+                songItems: getSongItems(songItems)
             };
         case commonActions.REQUEST_COMMON_DATA:
-            console.log('Request Common Data');
             return {
                 ...state,
                 isLoading: true
+            }
+        case commonActions.END_REQUEST:
+            return {
+                ...state,
+                isLoading: false
             }
         case commonActions.FETCH_COOP_STEPCHART_LEVELS:
             let coopStepchartLevelItems = COOP_STEPCHART_LEVELS.map(item => {
@@ -70,5 +75,24 @@ export default function (state = INITIAL_STATE, action) {
         default:
             return state;
     }
+}
+
+function getDistinctCategory(items) {
+    const distinctCategory = [...new Set(items.map(x => x.group))];
+    return distinctCategory;
+}
+
+function getSongItems(items) {
+    const distinctCategory = getDistinctCategory(items);
+    
+    const songItems = distinctCategory.map(category => {
+        let options = items.filter(x => x.group === category);
+        options = options.map(x => {
+            return { value: x._id, label: x.name, artist: x.artist, group: x.group }
+        })
+        return { label: category, options: options }
+    });
+
+    return songItems;
 }
 

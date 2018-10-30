@@ -108,6 +108,25 @@
     padding-top: 80px;
  }
 
+ /* [class*="__single-value"] {
+    position: relative !important;
+    margin-top: 50px;
+    margin-bottom: auto;
+ } */
+
+ .form-control__single-value {
+    position: relative !important;
+    margin-top: 50px;
+    margin-bottom: auto;
+}
+
+ .form-control-invalid__single-value {
+    position: relative !important;
+    margin-top: 50px;
+    margin-bottom: auto;
+}
+
+
  .form-control-invalid__control {
      border-color:red !important;
  }
