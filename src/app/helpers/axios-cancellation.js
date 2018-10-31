@@ -19,7 +19,6 @@ export function cancelAllPendingRequests() {
 }
 
 export function removeCancelToken(cancelTokenSource) {
-    console.log('Cancel Token');
     arrayRemove(allSources, cancelTokenSource)
 }
 

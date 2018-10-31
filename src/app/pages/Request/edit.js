@@ -67,6 +67,11 @@ const optionDiv = {
 	whiteSpace: 'normal'
 }
 
+const buttonStyles = {
+	marginTop: '10px',
+	marginBottom: '20px'
+}
+
 const formatGroupLabel = data => (
 	<div style={groupStyles}>
 		<span>{data.label}</span>
@@ -116,47 +121,12 @@ class RequestEdit extends Component {
 			const id = this.props.match.params.id;
 			fetchRequestItem(id);
 		}
-
-		setTimeout(function () {
-			self.manipulateRequestData(self.props.editedRequest)
-
-			CKEDITOR.replace('requester_note', {
-				on: {
-					change: function (evt) {
-						let data = evt.editor.getData();
-						self.onTextAreaChanged('requester_note', data);
-					},
-					instanceReady: function (evt) {
-						console.log('requester_note instance ready');
-						self.setState({
-							isRequesterNoteReady: true
-						})
-					}
-				}
-			});
-
-			CKEDITOR.replace('custom_note', {
-				on: {
-					change: function (evt) {
-						let data = evt.editor.getData();
-						self.onTextAreaChanged('custom_note', data);
-					},
-					instanceReady: function (evt) {
-						console.log('custom_note instance ready');
-						self.setState({
-							isCustomNoteReady: true
-						})
-					}
-				}
-			});	
-
-		}, 2000);
 	}
 
 	manipulateRequestData(item) {
 		const self = this;
 		const { ucs_link, stepchart_info, song, song_name, status, requester_note, custom_note, content_name, stepmaker, requester } = item;
-		
+
 		self.setState({
 			formValue: {
 				ucs_link: ucs_link,
@@ -170,17 +140,21 @@ class RequestEdit extends Component {
 				content_name: content_name ? content_name : '',
 				song: song
 			},
-			selectedSong: item ? { label: song_name, value: song } : null
 		});
 
-		const { formValue } = self.state;
-		const bindInput = ['requester_note', 'custom_note', 'requester', 'stepchart_type', 'stepchart_level'];
-		bindInput.forEach(item => {
-			if (formValue[item]) {
-				document.getElementById(item).value = formValue[item];
+		self.props.songItems.map(categoryItem => {
+			const categoryOptions = categoryItem.options;
+
+			var foundItem = categoryOptions.find(function (item) {
+				return item.value === song;
+			})
+
+			if (foundItem) {
+				self.setState({
+					selectedSong: foundItem ? { label: foundItem.label, value: foundItem.value, artist: foundItem.artist } : undefined,
+				})
 			}
 		});
-
 	}
 
 	componentWillUnmount() {
@@ -188,6 +162,60 @@ class RequestEdit extends Component {
 		this.props.clearRequestItem();
 		for (name in CKEDITOR.instances) {
 			CKEDITOR.instances[name].destroy();
+		}
+	}
+
+	componentDidUpdate() {
+		console.log('request edit did update');
+		const self = this;
+		if (self.props.editedRequest && !self.state.isLoaded) {
+			this.manipulateRequestData(this.props.editedRequest);
+
+			setTimeout(function () {
+				const { formValue } = self.state;
+				const bindInput = ['requester_note', 'custom_note', 'requester', 'stepchart_type', 'stepchart_level'];
+				bindInput.forEach(item => {
+					if (formValue[item]) {
+						document.getElementById(item).value = formValue[item];
+					}
+				});
+
+				CKEDITOR.replace('requester_note', {
+					on: {
+						change: function (evt) {
+							let data = evt.editor.getData();
+							self.onTextAreaChanged('requester_note', data);
+						},
+						instanceReady: function (evt) {
+							console.log('requester_note instance ready');
+							self.setState({
+								isRequesterNoteReady: true
+							})
+						}
+					}
+				});
+
+				CKEDITOR.replace('custom_note', {
+					on: {
+						change: function (evt) {
+							let data = evt.editor.getData();
+							self.onTextAreaChanged('custom_note', data);
+						},
+						instanceReady: function (evt) {
+							console.log('custom_note instance ready');
+							self.setState({
+								isCustomNoteReady: true
+							})
+						}
+					}
+				});
+
+			}, 2000);
+
+			self.setState({
+				isLoaded: true
+			})
+
 		}
 	}
 
@@ -234,7 +262,8 @@ class RequestEdit extends Component {
 			selectedSong: e
 		});
 
-		console.log(self.state);
+		console.log('Selected');
+		console.log(e);
 
 		if (self.state.isFormSubmit) {
 			setTimeout(function () {
@@ -275,8 +304,13 @@ class RequestEdit extends Component {
 
 	render() {
 		const self = this;
-		const { formErrors, selectedSong, isCustomNoteReady, isRequesterNoteReady } = self.state;
-		const { songItems, stepchartTypeItems, stepchartLevelItems, isRequestItemFetching, isCommonLoading } = self.props;
+		const { formErrors, selectedSong, isCustomNoteReady, isRequesterNoteReady, formValue } = self.state;
+		const { songItems, stepchartTypeItems, stepchartLevelItems, isRequestItemFetching, isCommonLoading, editedRequest } = self.props;
+
+		const dateOptions = {
+			weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZoneName: 'short',
+			hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false,
+		}
 
 		return (
 			<Container fluid>
@@ -310,7 +344,7 @@ class RequestEdit extends Component {
 								<Col md={12}>
 									<FormGroup>
 										<Label for="requestDate">Request Date</Label>
-										<p>asdfasdfsdfsafasf</p>
+										<p>{editedRequest ? (new Intl.DateTimeFormat('en-US', dateOptions).format(new Date(editedRequest.request_date))) : null}</p>
 									</FormGroup>
 								</Col>
 								<Col md={12}>
@@ -366,7 +400,19 @@ class RequestEdit extends Component {
 							</Row>
 						</Col>
 					</Row>
-					<Button color="primary" type='submit'>Save</Button>
+					<Row form>
+						{/* <Col className={'d-flex justify-content-center align-content-center'} lg={4} md={12} style={buttonStyles}>
+							<Col lg={6} md={12}>
+								<Button color="primary" block type='submit'><FontAwesomeIcon icon="save"  /> Save</Button>
+							</Col>
+						</Col>
+						<Col className={'d-flex justify-content-center align-content-center'} lg={4} md={12} style={buttonStyles}>
+							<Button color="success" block type='button'><FontAwesomeIcon icon="save"  /> Youtube Description</Button>
+						</Col>
+						<Col className={'d-flex justify-content-center align-content-center'} lg={4} md={12} style={buttonStyles}>
+							<Button color="danger" block type='button'><FontAwesomeIcon icon="arrow-left"  /> Back</Button>
+						</Col> */}
+					</Row>
 				</Form>
 			</Container>
 		);
