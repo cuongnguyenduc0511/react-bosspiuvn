@@ -7,6 +7,7 @@ import {
 	Input, Label, Row, Col, Alert,
 	Modal, ModalHeader, ModalBody, ModalFooter
 } from 'reactstrap';
+import { push } from 'react-router-redux';
 import 'ckeditor';
 // import CKEditor from '@ckeditor/ckeditor5-react';
 // import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
@@ -16,6 +17,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { cancelAllPendingRequests } from '../../helpers/axios-cancellation';
 import { isFormValid } from '../../helpers/form-validator';
 import { fetchRequestItem, clearRequestItem } from '../../actions/Request/requestActions';
+import store from '../../configureStore';
+import { AppLoader } from '../../component/Loader/AppLoader';
 
 const formConstraints = {
 	song: {
@@ -41,8 +44,36 @@ const formConstraints = {
 			message: 'Stepchart level is required',
 			allowEmpty: false
 		},
+	},
+	stepmaker: {
+		presence: {
+			message: 'Stepmaker is required',
+			allowEmpty: false
+		},
+	},
+	status: {
+		presence: {
+			message: 'Status is required',
+			allowEmpty: false
+		},
+	},
+	ucs_link: {
+		presence: {
+			message: 'UCS download link is required',
+			allowEmpty: false
+		},
+		url: {
+			message: 'UCS download link is not valid'
+		}
 	}
 };
+
+const members = [
+	{ value: 'ZHAOYUN', label: 'ZHAOYUN' },
+	{ value: 'DRBOX', label: 'DRBOX'},
+	{ value: 'NUMBUH_1', label: 'NUMBUH_1' },
+	{ value: 'CONCEC', label: 'CONCEC' },
+];
 
 const groupStyles = {
 	display: 'flex',
@@ -70,6 +101,10 @@ const optionDiv = {
 const buttonStyles = {
 	marginTop: '10px',
 	marginBottom: '20px'
+}
+
+const textAreaStyles = {
+	width: '100%'
 }
 
 const formatGroupLabel = data => (
@@ -166,14 +201,17 @@ class RequestEdit extends Component {
 	}
 
 	componentDidUpdate() {
-		console.log('request edit did update');
 		const self = this;
-		if (self.props.editedRequest && !self.state.isLoaded) {
+		const { editedRequest, isCommonLoading, isRequestItemFetching } = self.props;
+		if (editedRequest && !isCommonLoading && !isRequestItemFetching && !self.state.isLoaded) {
 			this.manipulateRequestData(this.props.editedRequest);
 
 			setTimeout(function () {
 				const { formValue } = self.state;
-				const bindInput = ['requester_note', 'custom_note', 'requester', 'stepchart_type', 'stepchart_level'];
+				const bindInput = ['requester_note', 'custom_note', 'requester',
+					'stepmaker', 'stepchart_type', 'stepchart_level',
+					'ucs_link', 'status'
+				];
 				bindInput.forEach(item => {
 					if (formValue[item]) {
 						document.getElementById(item).value = formValue[item];
@@ -302,10 +340,19 @@ class RequestEdit extends Component {
 		}
 	}
 
+	onPlayerChanged = (e) => {
+		console.log('Player Changed');
+		console.log(e);
+	}
+
+	backToRequestPage = () => {
+		store.dispatch(push('/request'));
+	}
+
 	render() {
 		const self = this;
 		const { formErrors, selectedSong, isCustomNoteReady, isRequesterNoteReady, formValue } = self.state;
-		const { songItems, stepchartTypeItems, stepchartLevelItems, isRequestItemFetching, isCommonLoading, editedRequest } = self.props;
+		const { songItems, stepchartTypeItems, statusItems, stepchartLevelItems, isRequestItemFetching, isCommonLoading, editedRequest } = self.props;
 
 		const dateOptions = {
 			weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZoneName: 'short',
@@ -315,16 +362,18 @@ class RequestEdit extends Component {
 		return (
 			<Container fluid>
 				<h1 className='text-center section-header'>Request Edit Page</h1>
-				<div hidden={!isCommonLoading && !isRequestItemFetching && isCustomNoteReady && isRequesterNoteReady} className="overlay-div">
+				{/* <div hidden={!isCommonLoading && !isRequestItemFetching && isCustomNoteReady && isRequesterNoteReady} className="overlay-div">
 					<FontAwesomeIcon className="spin-big overlay-loader" icon="spinner" spin />
-				</div>
+				</div> */}
+
+				<AppLoader hidden={!isCommonLoading && !isRequestItemFetching && isCustomNoteReady && isRequesterNoteReady} />
 				<Form onSubmit={self.onSubmit}>
 					<Row>
 						<Col lg={5} md={12}>
 							<Row form>
 								<Col md={12}>
 									<FormGroup>
-										<Label for="song">Song Name</Label>
+										<Label for="song"><FontAwesomeIcon className={'b-fa-logo'} icon="music" /> Song Name</Label>
 										{/* <Select onChange={(e) => self.onSelectChange(e, 'song_name')} classNamePrefix={isFieldError ? 'form-control-invalid' : 'form-control'} className={'form-control-container'}
 											options={options}
 										/> */}
@@ -336,21 +385,21 @@ class RequestEdit extends Component {
 								</Col>
 								<Col md={12}>
 									<FormGroup>
-										<Label for="requester">Requester Name</Label>
+										<Label for="requester"><FontAwesomeIcon className={'b-fa-logo'} icon="user" /> Requester Name</Label>
 										<Input invalid={formErrors && formErrors.requester ? true : false} type="text" name="requester" id="requester" onChange={self.onHandleChange} placeholder="Enter Requester Name" />
 										<FormFeedback className={"form-feedback-text"}>{formErrors && formErrors.requester ? formErrors.requester.errorMessage : null}</FormFeedback>
 									</FormGroup>
 								</Col>
 								<Col md={12}>
 									<FormGroup>
-										<Label for="requestDate">Request Date</Label>
+										<Label for="requestDate"><FontAwesomeIcon className={'b-fa-logo'} icon="calendar-alt" /> Request Date</Label>
 										<p>{editedRequest ? (new Intl.DateTimeFormat('en-US', dateOptions).format(new Date(editedRequest.request_date))) : null}</p>
 									</FormGroup>
 								</Col>
 								<Col md={12}>
 									<FormGroup>
 										<Label for="content_name">Content Name</Label>
-										<Input type="text" name="content_name" id="content_name" onChange={self.onHandleChange} placeholder="Search" />
+										<Input type="text" name="content_name" id="content_name" onChange={self.onHandleChange} placeholder="Enter content name" />
 									</FormGroup>
 								</Col>
 								<Col lg={6} md={6}>
@@ -379,39 +428,71 @@ class RequestEdit extends Component {
 										<FormFeedback className={"form-feedback-text"}>{formErrors && formErrors.stepchart_level ? formErrors.stepchart_level.errorMessage : null}</FormFeedback>
 									</FormGroup>
 								</Col>
+								<Col md={12}>
+									<FormGroup>
+										<Label for="stepmaker"><FontAwesomeIcon className={'b-fa-logo'} icon="user-shield" /> Stepmaker</Label>
+										<Input invalid={formErrors && formErrors.stepmaker ? true : false} type="text" name="stepmaker" id="stepmaker" onChange={self.onHandleChange} placeholder="Enter stepmaker name" />
+										<FormFeedback className={"form-feedback-text"}>{formErrors && formErrors.stepmaker ? formErrors.stepmaker.errorMessage : null}</FormFeedback>
+									</FormGroup>
+								</Col>
+								<Col md={12}>
+									<FormGroup>
+										<Label for="ucs_link"><FontAwesomeIcon className={'b-fa-logo'} icon="download" /> Url Download Link</Label>
+										<Input invalid={formErrors && formErrors.ucs_link ? true : false} type="text" name="ucs_link" id="ucs_link" onChange={self.onHandleChange} placeholder="Enter UCS Download Link" />
+										<FormFeedback className={"form-feedback-text"}>{formErrors && formErrors.ucs_link ? formErrors.ucs_link.errorMessage : null}</FormFeedback>
+									</FormGroup>
+								</Col>
+								<Col md={12}>
+									<FormGroup>
+										<Label for="status"><FontAwesomeIcon className={'b-fa-logo'} icon="stamp" /> Status</Label>
+										<Input invalid={formErrors && formErrors.status ? true : false} type="select" name="status" id="status" onChange={self.onHandleChange}>
+											{
+												statusItems ? statusItems.map(item => {
+													return <option key={item.value} value={item.value}>{item.title}</option>
+												}) : null
+											}
+										</Input>
+										<FormFeedback className={"form-feedback-text"}>{formErrors && formErrors.status ? formErrors.status.errorMessage : null}</FormFeedback>
+									</FormGroup>
+								</Col>
+								<Col md={12}>
+									<FormGroup>
+										<Label for="played_by"><FontAwesomeIcon className={'b-fa-logo'} icon="users" /> Played By</Label>
+										<Select isMulti options={members} onChange={self.onPlayerChanged}/>
+										<div hidden={formErrors && !formErrors.played_by ? true : false} className="form-feedback-text select-feedback">{formErrors && formErrors.played_by ? formErrors.played_by.errorMessage : null}</div>
+									</FormGroup>
+								</Col>
 							</Row>
 						</Col>
 						<Col lg={7} md={12}>
 							<Row form>
 								<Col md={12}>
 									<FormGroup>
-										<Label for="requester_note">Requester Note</Label>
-										<textarea name="requester_note" id="requester_note" rows="10" cols="80">
+										<Label for="requester_note"><FontAwesomeIcon className={'b-fa-logo'} icon="sticky-note" /> Requester Note</Label>
+										<textarea name="requester_note" id="requester_note" rows="10" cols="80" style={textAreaStyles}>
 										</textarea>
 									</FormGroup>
 								</Col>
 								<Col md={12}>
 									<FormGroup>
-										<Label for="custom_note">Custom Note</Label>
-										<textarea name="custom_note" id="custom_note" rows="10" cols="80">
+										<Label for="custom_note"><FontAwesomeIcon className={'b-fa-logo'} icon="sticky-note" /> Custom Note</Label>
+										<textarea name="custom_note" id="custom_note" rows="10" cols="80" style={textAreaStyles}>
 										</textarea>
 									</FormGroup>
 								</Col>
 							</Row>
 						</Col>
 					</Row>
-					<Row form>
-						{/* <Col className={'d-flex justify-content-center align-content-center'} lg={4} md={12} style={buttonStyles}>
-							<Col lg={6} md={12}>
-								<Button color="primary" block type='submit'><FontAwesomeIcon icon="save"  /> Save</Button>
-							</Col>
+					<Row>
+						<Col className={'d-flex justify-content-center align-content-center'} lg={4} md={4} style={buttonStyles}>
+							<Button color="primary" block type='submit'><FontAwesomeIcon className={'b-fa-logo'} icon="save" /> Save</Button>
 						</Col>
-						<Col className={'d-flex justify-content-center align-content-center'} lg={4} md={12} style={buttonStyles}>
-							<Button color="success" block type='button'><FontAwesomeIcon icon="save"  /> Youtube Description</Button>
+						<Col className={'d-flex justify-content-center align-content-center'} lg={4} md={4} style={buttonStyles}>
+							<Button color="success" block type='button'><FontAwesomeIcon className={'b-fa-logo'} icon="save" /> Youtube Description</Button>
 						</Col>
-						<Col className={'d-flex justify-content-center align-content-center'} lg={4} md={12} style={buttonStyles}>
-							<Button color="danger" block type='button'><FontAwesomeIcon icon="arrow-left"  /> Back</Button>
-						</Col> */}
+						<Col className={'d-flex justify-content-center align-content-center'} lg={4} md={4} style={buttonStyles}>
+							<Button color="danger" block type='button' onClick={self.backToRequestPage}><FontAwesomeIcon className={'b-fa-logo'} icon="arrow-left" /> Back</Button>
+						</Col>
 					</Row>
 				</Form>
 			</Container>
