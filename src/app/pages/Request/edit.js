@@ -68,12 +68,12 @@ const formConstraints = {
 	}
 };
 
-const members = [
-	{ value: 'ZHAOYUN', label: 'ZHAOYUN' },
-	{ value: 'DRBOX', label: 'DRBOX'},
-	{ value: 'NUMBUH_1', label: 'NUMBUH_1' },
-	{ value: 'CONCEC', label: 'CONCEC' },
-];
+// const members = [
+// 	{ value: 'ZHAOYUN', label: 'ZHAOYUN' },
+// 	{ value: 'DRBOX', label: 'DRBOX'},
+// 	{ value: 'NUMBUH_1', label: 'NUMBUH_1' },
+// 	{ value: 'CONCEC', label: 'CONCEC' },
+// ];
 
 const groupStyles = {
 	display: 'flex',
@@ -140,11 +140,11 @@ class RequestEdit extends Component {
 		const self = this;
 
 		const {
-			stepchartTypeItems, stepchartLevelItems, statusItems, songItems,
+			stepchartTypeItems, stepchartLevelItems, statusItems, songItems, userItems,
 			fetchCommonData, fetchStepchartLevels, editedRequest, fetchRequestItem
 		} = self.props;
 
-		if (!stepchartTypeItems || !statusItems || !songItems) {
+		if (!stepchartTypeItems || !statusItems || !songItems || !userItems) {
 			fetchCommonData();
 		}
 
@@ -190,6 +190,7 @@ class RequestEdit extends Component {
 				})
 			}
 		});
+
 	}
 
 	componentWillUnmount() {
@@ -352,7 +353,7 @@ class RequestEdit extends Component {
 	render() {
 		const self = this;
 		const { formErrors, selectedSong, isCustomNoteReady, isRequesterNoteReady, formValue } = self.state;
-		const { songItems, stepchartTypeItems, statusItems, stepchartLevelItems, isRequestItemFetching, isCommonLoading, editedRequest } = self.props;
+		const { songItems, stepchartTypeItems, members, statusItems, stepchartLevelItems, isRequestItemFetching, isCommonLoading, editedRequest } = self.props;
 
 		const dateOptions = {
 			weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZoneName: 'short',
@@ -507,7 +508,8 @@ const mapStateToProps = state => ({
 	statusItems: state.common.statusItems,
 	isCommonLoading: state.common.isLoading,
 	isRequestItemFetching: state.request.isRequestItemFetching,
-	editedRequest: state.request.editedRequest
+	editedRequest: state.request.editedRequest,
+	members: state.common.userItems
 })
 
 const mapDispatchToProps = (dispatch) => {

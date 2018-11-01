@@ -10,7 +10,7 @@ export default function (state = INITIAL_STATE, action) {
     switch (action.type) {
         case commonActions.GET_COMMON_DATA:
             console.log('Dispatched');
-            const { stepchartTypeItems, statusItems, songItems } = action.payload;
+            const { stepchartTypeItems, statusItems, songItems, userItems } = action.payload;
 
             let stepchartTypeItemsSelect = [{ value: '', title: 'Choose Stepchart Types' }, ...stepchartTypeItems];
 
@@ -19,12 +19,17 @@ export default function (state = INITIAL_STATE, action) {
             });
             statusItemsSelect = [{ value: '', title: 'Choose Status' }, ...statusItemsSelect];
 
+            let userItemsSelect = userItems.map(item => {
+                return { value: item._id, label: item.nickname }
+            })
+
             return {
                 ...state,
                 isLoading: false,
                 stepchartTypeItems: stepchartTypeItemsSelect,
                 statusItems: statusItemsSelect,
-                songItems: getSongItems(songItems)
+                songItems: getSongItems(songItems),
+                userItems: userItemsSelect
             };
         case commonActions.REQUEST_COMMON_DATA:
             return {

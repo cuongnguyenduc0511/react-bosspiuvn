@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { commonActions } from './commonActionTypes';
 import { getCancelToken, removeCancelToken } from '../../helpers/axios-cancellation';
+import { authHeader } from '../../helpers/auth-header';
+import { signOut } from '../Auth/authActions';
 const apiUrl = 'http://localhost:3000/api';
 
 export const fetchCommonData = () => dispatch => {
@@ -12,8 +14,9 @@ export const fetchCommonData = () => dispatch => {
         type: commonActions.REQUEST_COMMON_DATA
     })
 
-    axios.all([getStepchartTypes(cancelTokenSource), getStatusItems(cancelTokenSource), getSongItems(cancelTokenSource)])
-        .then(axios.spread(function (stepchartTypeRes, statusRes, songRes) {
+    axios.all([getStepchartTypes(cancelTokenSource), getStatusItems(cancelTokenSource), 
+        getSongItems(cancelTokenSource), getUserItems(cancelTokenSource)])
+        .then(axios.spread(function (stepchartTypeRes, statusRes, songRes, userRes) {
             // Both requests are now complete
             removeCancelToken(cancelTokenSource);
 
@@ -22,11 +25,14 @@ export const fetchCommonData = () => dispatch => {
                 payload: {
                     stepchartTypeItems: stepchartTypeRes.data,
                     statusItems: statusRes.data,
-                    songItems: songRes.data
+                    songItems: songRes.data,
+                    userItems: userRes.data
                 }
             })
         })).catch(error => {
-            console.log(error);
+            if (error.response && error.response.status === 401) {
+                dispatch(signOut());
+            }
         });
 }
 
@@ -79,6 +85,17 @@ function getStepchartTypes(cancelTokenSource) {
 
 function getStatusItems(cancelTokenSource) {
     return axios.get(`${apiUrl}/status`, {
+        cancelToken: cancelTokenSource.token
+    });
+}
+
+function getUserItems(cancelTokenSource) {
+    const apiUrl = 'http://localhost:3000/admin';
+    const userToken = localStorage.getItem('authToken');
+    return axios.get(`${apiUrl}/users`, {
+        headers: {
+            'Authorization': `Bearer ${userToken}`
+        },
         cancelToken: cancelTokenSource.token
     });
 }
