@@ -2,12 +2,10 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types'
 import { Provider } from 'react-redux'
 import { Router, Route, Switch, Redirect } from 'react-router-dom'
-import { connect } from 'react-redux';
 import Loadable from 'react-loadable';
 import { AppLoader } from './component/Loader/AppLoader'
 import { history } from './configureStore';
 import App from './pages/App/App';
-import { checkAuthentication } from './actions/Auth/authActions';
 
 const Login = Loadable({
     loader: () => import('./pages/Login'),
@@ -19,18 +17,6 @@ const Login = Loadable({
 class AppRoot extends Component {
     constructor(props) {
         super(props);
-
-        // async function f() {
-        //     let promise = new Promise((resolve, reject) => {
-        //         setTimeout(() => resolve("Got Damn It!"), 5000)
-        //     });
-
-        //     let result = await promise; // wait till the promise resolves (*)
-
-        //     alert(result); // "done!"
-        // }
-
-        // f();
     }
 
     render() {

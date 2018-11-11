@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { Router, Switch, Route } from 'react-router-dom'
-import routes, { RouteWithSubRoutes } from './routes';
+import routes from './routes';
 import { connect } from 'react-redux'
 import { renderRoutes } from 'react-router-config';
-import { history } from '../../configureStore';
 import NavigationBar from '../../component/Navigation';
 import { getUserInformation } from '../../actions/Auth/authActions';
 

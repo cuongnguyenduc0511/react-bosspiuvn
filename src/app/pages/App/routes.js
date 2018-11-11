@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Loadable from 'react-loadable';
 import { AppLoader } from '../../component/Loader/AppLoader';
+import Logout from '../Logout';
 
 const Song = Loadable({
     loader: () => import('../Song'),
@@ -49,6 +50,10 @@ const routes = [
             exact: true,
             component: RequestList
         }]
+    },
+    {
+        path: '/logout',
+        component: Logout
     }
 ]
 

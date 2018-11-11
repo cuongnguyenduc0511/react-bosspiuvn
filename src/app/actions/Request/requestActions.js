@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { push } from 'react-router-redux';
 import { requestActions } from './requestActionTypes';
 const requestApiUrl = 'http://localhost:3000/admin/requests';
 import { authHeader } from '../../helpers/auth-header';
@@ -10,171 +9,267 @@ import swal from 'sweetalert';
 const requestInstance = axios.create();
 
 export const fetchRequests = (page = null, params = null) => dispatch => {
-    fetchRequestData(params, page, dispatch);
+  fetchRequestData(params, page, dispatch);
 }
 
-export const deleteRequest = (deleted, context) => dispatch => {
-    const deleteRequestApi = 'http://localhost:3000/admin/request/deleteDemo';
+export const deleteRequest = (deleted) => dispatch => {
+  const deleteRequestApi = 'http://localhost:3000/admin/request/deleteDemo';
+  let requestSource = getCancelToken();
 
-    dispatch({
-        type: requestActions.DELETE_REQUEST_PENDING
+  dispatch({
+    type: requestActions.DELETE_REQUEST_PENDING
+  });
+
+  return new Promise((resolve, reject) => {
+    const request = requestInstance.delete(deleteRequestApi, {
+      headers: authHeader(),
+      data: { deleted: deleted },
+      cancelToken: requestSource.token
     });
 
-    let requestSource = getCancelToken();
-    let swalOptions;
+    request.then(res => {
+      removeCancelToken(requestSource);
+      dispatch({
+        type: requestActions.DELETE_REQUEST_DONE,
+        payload: res.data
+      });
 
-    console.log(deleted);
-
-    requestInstance.delete(deleteRequestApi, {
-        headers: authHeader(),
-        data: { deleted: deleted },
-        cancelToken: requestSource.token
-    }).then(res => {
-        removeCancelToken(requestSource);
-        dispatch({
+      return resolve(res);
+    }).catch(error => {
+      if (error.response && error.response.status === 401) {
+        dispatch(signOut());
+      } else {
+        if (!axios.isCancel()) {
+          dispatch({
             type: requestActions.DELETE_REQUEST_DONE,
-            payload: res.data
-        });
+            payload: error
+          });
+          return reject(error);
+        }
+      }
+    });
+  });
+}
+
+// export const deleteRequest = (deleted, context) => dispatch => {
+//     const deleteRequestApi = 'http://localhost:3000/admin/request/deleteDemo';
+
+//     dispatch({
+//         type: requestActions.DELETE_REQUEST_PENDING
+//     });
+
+//     let requestSource = getCancelToken();
+//     let swalOptions;
+
+//     console.log(deleted);
+
+//     requestInstance.delete(deleteRequestApi, {
+//         headers: authHeader(),
+//         data: { deleted: deleted },
+//         cancelToken: requestSource.token
+//     }).then(res => {
+//         removeCancelToken(requestSource);
+//         dispatch({
+//             type: requestActions.DELETE_REQUEST_DONE,
+//             payload: res.data
+//         });
+
+//         swalOptions = {
+//             title: res.data.message,
+//             icon: "success",
+//             button: "OK",
+//             closeOnClickOutside: false
+//         }
+
+//         const { requestResult } = context.props;
+
+//         const { currentPage, queryParams } = requestResult;
+
+//         swal(swalOptions).then(() => {
+//             dispatch(fetchRequests(currentPage, queryParams));
+//         });
+//     }).catch(error => {
+
+//         if (error.response && error.response.status === 401) {
+//             dispatch(signOut());
+//         } else {
+//             if (!axios.isCancel()) {
+//                 dispatch({
+//                     type: requestActions.DELETE_REQUEST_DONE,
+//                     payload: error
+//                 });
+
+//                 swalOptions = {
+//                     title: error.response.data.message,
+//                     icon: "error",
+//                     button: "OK",
+//                     closeOnClickOutside: false
+//                 }
+
+//                 swal(swalOptions);
+//             }
+//         }
+//     }).then(() => {
+//         context.toggleDeleteModal();
+//     });
+// }
+
+export const updateRequest = (updated, formValue, context) => dispatch => {
+  const updateRequestApi = `http://localhost:3000/admin/request/update/${updated}`;
+
+  dispatch({
+    type: requestActions.UPDATE_REQUEST_PENDING
+  });
+
+  let requestSource = getCancelToken();
+  let swalOptions;
+
+  console.log(formValue);
+
+  requestInstance.put(updateRequestApi, formValue, {
+    headers: authHeader(),
+    cancelToken: requestSource.token
+  }).then(() => {
+    removeCancelToken(requestSource);
+    swalOptions = {
+      title: 'Request has been successfully updated',
+      icon: "success",
+      button: "OK",
+      closeOnClickOutside: false
+    };
+    swal(swalOptions).then(() => {
+      dispatch(fetchRequestItem(updated));
+      dispatch({
+        type: requestActions.ENABLE_RELOAD_LIST
+      });
+      context.setState({
+        isLoaded: false,
+        isRequesterNoteReady: false,
+        isCustomNoteReady: false
+      });
+    });
+  }).catch(error => {
+
+    if (error.response && error.response.status === 401) {
+      dispatch(signOut());
+    } else {
+      if (!axios.isCancel()) {
 
         swalOptions = {
-            title: res.data.message,
-            icon: "success",
-            button: "OK",
-            closeOnClickOutside: false
+          title: error.response.data.message,
+          icon: "error",
+          button: "OK",
+          closeOnClickOutside: false
         }
 
-        const { requestResult } = context.props;
-        
-        const { currentPage, queryParams } = requestResult;
+        swal(swalOptions);
+      }
+    }
 
-        swal(swalOptions).then(() => {
-            dispatch(fetchRequests(currentPage, queryParams));
-        });
-
-    }).catch(error => {
-
-        if (error.response && error.response.status === 401) {
-            dispatch(signOut());
-        } else {
-            if (!axios.isCancel()) {
-                dispatch({
-                    type: requestActions.DELETE_REQUEST_DONE,
-                    payload: error
-                });
-
-                swalOptions = {
-                    title: error.response.data.message,
-                    icon: "error",
-                    button: "OK",
-                    closeOnClickOutside: false
-                }
-
-                swal(swalOptions);
-            }
-        }
-
-    }).then(() => {
-        context.toggleDeleteModal();
+  }).then(() => {
+    dispatch({
+      type: requestActions.UPDATE_REQUEST_DONE,
     });
+  });
 }
 
 export const saveSearchValue = (formValue) => dispatch => {
-    dispatch({
-        type: requestActions.SAVE_SEARCH_VALUE,
-        payload: formValue
-    })
+  dispatch({
+    type: requestActions.SAVE_SEARCH_VALUE,
+    payload: formValue
+  })
 }
 
 export const fetchRequestItem = (id) => dispatch => {
-    let requestSource = getCancelToken();
-    const requestApiUrl = `http://localhost:3000/admin/request/${id}`;
-    
+  let requestSource = getCancelToken();
+  const requestApiUrl = `http://localhost:3000/admin/request/${id}`;
+
+  dispatch({
+    type: requestActions.EDIT_FETCH_REQUEST_PENDING
+  });
+
+  requestInstance.get(requestApiUrl, {
+    headers: authHeader(),
+    cancelToken: requestSource.token
+  }).then(res => {
+    removeCancelToken(requestSource);
     dispatch({
-        type: requestActions.EDIT_FETCH_REQUEST_PENDING
+      type: requestActions.EDIT_FETCH_REQUEST_DONE,
+      payload: res.data
     });
-    
-    requestInstance.get(requestApiUrl, {
-        headers: authHeader(),
-        cancelToken: requestSource.token
-    }).then(res => {
-        removeCancelToken(requestSource);
+  }).catch(error => {
+    if (error.response && error.response.status === 401) {
+      dispatch(signOut());
+    } else {
+      if (!axios.isCancel()) {
         dispatch({
-            type: requestActions.EDIT_FETCH_REQUEST_DONE,
-            payload: res.data
+          type: requestActions.EDIT_FETCH_REQUEST_FAIL,
+          payload: error
         });
-    }).catch(error => {
-        if (error.response && error.response.status === 401) {
-            dispatch(signOut());
-        } else {
-            if (!axios.isCancel()) {
-                dispatch({
-                    type: requestActions.EDIT_FETCH_REQUEST_FAIL,
-                    payload: error
-                });
-            }
-        }
-    });
+      }
+    }
+  });
 }
 
 export const clearRequestItem = () => dispatch => {
-    dispatch({
-        type: requestActions.EDIT_CLEAR_REQUEST_ITEM
-    })
+  dispatch({
+    type: requestActions.EDIT_CLEAR_REQUEST_ITEM
+  })
 }
 
 let fetchRequestData = function (params, page, dispatch) {
-    let urlParams = getParams(params, page);
+  let urlParams = getParams(params, page);
 
-    document.getElementById('master-checkbox').checked = false;
-    let itemCheckboxes = document.getElementsByClassName('item-checkbox');
-    for (let i = 0; i < itemCheckboxes.length; i++) {
-        itemCheckboxes[i].checked = false;
-    }
+  document.getElementById('master-checkbox').checked = false;
+  let itemCheckboxes = document.getElementsByClassName('item-checkbox');
+  for (let i = 0; i < itemCheckboxes.length; i++) {
+    itemCheckboxes[i].checked = false;
+  }
 
+  dispatch({
+    type: requestActions.FETCH_REQUESTS_PENDING
+  });
+
+  let requestSource = getCancelToken();
+
+  requestInstance.get(requestApiUrl, {
+    params: urlParams,
+    headers: authHeader(),
+    cancelToken: requestSource.token
+  }).then(res => {
+    removeCancelToken(requestSource);
     dispatch({
-        type: requestActions.FETCH_REQUESTS_PENDING
+      type: requestActions.FETCH_REQUESTS_SUCCESS,
+      payload: res.data
     });
-
-    let requestSource = getCancelToken();
-
-    requestInstance.get(requestApiUrl, {
-        params: urlParams,
-        headers: authHeader(),
-        cancelToken: requestSource.token
-    }).then(res => {
-        removeCancelToken(requestSource);
+  }).catch(error => {
+    if (error.response && error.response.status === 401) {
+      dispatch(signOut());
+    } else {
+      if (!axios.isCancel()) {
         dispatch({
-            type: requestActions.FETCH_REQUESTS_SUCCESS,
-            payload: res.data
+          type: requestActions.FETCH_REQUESTS_FAIL,
+          payload: error
         });
-    }).catch(error => {
-        if (error.response && error.response.status === 401) {
-            dispatch(signOut());
-        } else {
-            if (!axios.isCancel()) {
-                dispatch({
-                    type: requestActions.FETCH_REQUESTS_FAIL,
-                    payload: error
-                });
-            }
-        }
-    });
+      }
+    }
+  });
 }
 
 function getParams(params = null, page = null) {
-    let urlParams = params ? jsonCopy(params) : {};
+  let urlParams = params ? jsonCopy(params) : {};
 
-    if (typeof params === 'string') {
-        urlParams = getAllUrlParams(params);
-    }
+  if (typeof params === 'string') {
+    urlParams = getAllUrlParams(params);
+  }
 
-    if (page) {
-        urlParams.page = page;
-    }
+  if (page) {
+    urlParams.page = page;
+  }
 
-    return urlParams;
+  return urlParams;
 }
 
 function jsonCopy(src) {
-    return JSON.parse(JSON.stringify(src));
+  return JSON.parse(JSON.stringify(src));
 }
